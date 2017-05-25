@@ -39,4 +39,3 @@ ExternalProject_Add (
         "-DCPP-NETLIB_BUILD_EXPERIMENTS=OFF"
         "-DCPP-NETLIB_BUILD_EXAMPLES=OFF" )
 set_target_properties(cppnetlib  PROPERTIES POSITION_INDEPENDENT_CODE ON)    
-add_dependencies(${PROJECT_NAME} cppnetlib)
