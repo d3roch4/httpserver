@@ -26,3 +26,17 @@ set(${PROJECT_NAME}_LIBRARY_DIRS
                     ${CMAKE_INSTALL_PREFIX}/lib64
     CACHE INTERNAL "${PROJECT_NAME}: Library Directories" FORCE)
    
+
+
+include(ExternalProject)
+ExternalProject_Add (
+    cppnetlib
+    URL  "https://github.com/cpp-netlib/cpp-netlib/archive/cpp-netlib-0.11.2-final.tar.gz"
+    CMAKE_ARGS 
+        "-DBOOST_INCLUDEDIR=${BOOST_INCLUDEDIR}"
+        "-DBOOST_LIBRARYDIR=${BOOST_LIBRARYDIR}"
+        "-DCPP-NETLIB_BUILD_TESTS=OFF"
+        "-DCPP-NETLIB_BUILD_EXPERIMENTS=OFF"
+        "-DCPP-NETLIB_BUILD_EXAMPLES=OFF" )
+set_target_properties(cppnetlib  PROPERTIES POSITION_INDEPENDENT_CODE ON)    
+add_dependencies(${PROJECT_NAME} cppnetlib)
