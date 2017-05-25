@@ -30,7 +30,7 @@ set(${PROJECT_NAME}_LIBRARY_DIRS
 
 include(ExternalProject)
 ExternalProject_Add (
-    cppnetlib
+    cppnetlib_
     URL  "https://github.com/cpp-netlib/cpp-netlib/archive/cpp-netlib-0.11.2-final.tar.gz"
     CMAKE_ARGS 
         "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
@@ -43,7 +43,7 @@ ExternalProject_Add (
 set_target_properties(cppnetlib  PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 ExternalProject_Add (
-    jsoncpp
+    jsoncpp_
     URL  "https://github.com/open-source-parsers/jsoncpp/archive/1.7.2.tar.gz"
     CMAKE_ARGS  
         "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
