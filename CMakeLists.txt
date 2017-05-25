@@ -33,6 +33,8 @@ ExternalProject_Add (
     cppnetlib
     URL  "https://github.com/cpp-netlib/cpp-netlib/archive/cpp-netlib-0.11.2-final.tar.gz"
     CMAKE_ARGS 
+        "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
+        "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
         "-DBOOST_INCLUDEDIR=${BOOST_INCLUDEDIR}"
         "-DBOOST_LIBRARYDIR=${BOOST_LIBRARYDIR}"
         "-DCPP-NETLIB_BUILD_TESTS=OFF"
