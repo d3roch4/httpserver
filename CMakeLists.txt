@@ -40,7 +40,7 @@ ExternalProject_Add (
         "-DCPP-NETLIB_BUILD_TESTS=OFF"
         "-DCPP-NETLIB_BUILD_EXPERIMENTS=OFF"
         "-DCPP-NETLIB_BUILD_EXAMPLES=OFF" )
-set_target_properties(cppnetlib  PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(cppnetlib_  PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 ExternalProject_Add (
     jsoncpp_
@@ -51,4 +51,4 @@ ExternalProject_Add (
         "-DJSONCPP_WITH_TESTS=OFF"
         "-DJSONCPP_WITH_POST_BUILD_UNITTEST=OFF"
         "-DJSONCPP_WITH_PKGCONFIG_SUPPORT=OFF")
-set_target_properties(jsoncpp  PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(jsoncpp_  PROPERTIES POSITION_INDEPENDENT_CODE ON)
