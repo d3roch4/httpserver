@@ -33,6 +33,7 @@ ExternalProject_Add (
     cppnetlib_
     URL  "https://github.com/cpp-netlib/cpp-netlib/archive/cpp-netlib-0.11.2-final.tar.gz"
     CMAKE_ARGS 
+        "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}"
         "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
         "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
         "-DBOOST_INCLUDEDIR=${BOOST_INCLUDEDIR}"
@@ -46,6 +47,7 @@ ExternalProject_Add (
     jsoncpp_
     URL  "https://github.com/open-source-parsers/jsoncpp/archive/1.7.2.tar.gz"
     CMAKE_ARGS  
+        "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}"
         "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
         "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
         "-DJSONCPP_WITH_TESTS=OFF"
