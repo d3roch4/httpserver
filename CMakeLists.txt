@@ -42,15 +42,3 @@ ExternalProject_Add (
         "-DCPP-NETLIB_BUILD_EXPERIMENTS=OFF"
         "-DCPP-NETLIB_BUILD_EXAMPLES=OFF" )
 set_target_properties(cppnetlib_  PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-ExternalProject_Add (
-    jsoncpp_
-    URL  "https://github.com/open-source-parsers/jsoncpp/archive/1.7.2.tar.gz"
-    CMAKE_ARGS  
-        "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}"
-        "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
-        "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-        "-DJSONCPP_WITH_TESTS=OFF"
-        "-DJSONCPP_WITH_POST_BUILD_UNITTEST=OFF"
-        "-DJSONCPP_WITH_PKGCONFIG_SUPPORT=OFF")
-set_target_properties(jsoncpp_  PROPERTIES POSITION_INDEPENDENT_CODE ON)
