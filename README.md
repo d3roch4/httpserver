@@ -1,2 +1,2 @@
 # httpserver
-A lib http server with cpp-netlib
+A http server lib with beast
