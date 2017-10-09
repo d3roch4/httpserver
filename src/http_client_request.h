@@ -26,8 +26,75 @@ enum method
 
 
 void load_root_certificates(ssl::context& ctx);
-
 http::response<http::string_body> http_client_request(const string& url,
+                       const string& params = "",
+                       http::verb method = http::verb::get,
+                       const string& content_type = "application/x-www-form-urlencoded",
+                       bool redirects = true,
+                       int timeout = 10);
+
+
+
+http::response<http::string_body> http_client_request_no_ssl(const string& url,
+                       const string& params = "",
+                       http::verb method = http::verb::get,
+                       const string& content_type = "application/x-www-form-urlencoded",
+                       bool redirects = true,
+                       int timeout = 10)
+{
+    // The io_service is required for all I/O
+    boost::asio::io_service ios;
+
+    // These objects perform our I/O
+    tcp::resolver resolver{ios};
+    tcp::socket socket{ios};
+
+    // Look up the domain name
+    network::uri uri{url};
+    auto const lookup = resolver.resolve( tcp::resolver::query(uri.host().to_string(), uri.scheme().to_string()) );
+
+    // Make the connection on the IP address we get from a lookup
+    boost::asio::connect(socket, lookup);
+
+    // Set up an HTTP request message
+    string target = uri.path().to_string();
+    string query = uri.query().to_string();
+    if( method == http::verb::get ){
+        query += (query.size()?"&":"") + (params.size()?params:"");
+    }
+    target += query.size()?'?'+query:"";
+
+    http::request<http::string_body> req{method, target, 11};
+    req.set(http::field::host, uri.host().to_string());
+    req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+    if(method != http::verb::get){
+        req.set(http::field::content_length, params.size());
+        req.set(http::field::content_type, content_type);
+        req.body() = params;
+    }
+
+    // Send the HTTP request to the remote host
+    http::write(socket, req);
+
+    // This buffer is used for reading and must be persisted
+    boost::beast::flat_buffer buffer;
+
+    // Declare a container to hold the response
+    http::response<http::string_body> res;
+
+    // Receive the HTTP response
+    boost::system::error_code ec;
+    http::read(socket, buffer, res, ec);
+    if(ec)
+        throw boost::system::system_error{ec};
+
+    if(redirects && res.base().result_int() == 301)
+        return http_client_request(url, params, method, content_type, redirects, timeout);
+
+    return res;
+}
+
+http::response<http::string_body> http_client_request_ssl(const string& url,
                        const string& params = "",
                        http::verb method = http::verb::get,
                        const string& content_type = "application/x-www-form-urlencoded",
@@ -97,6 +164,20 @@ http::response<http::string_body> http_client_request(const string& url,
 }
 
 
+
+
+http::response<http::string_body> http_client_request(const string& url,
+                       const string& params,
+                       http::verb method,
+                       const string& content_type,
+                       bool redirects,
+                       int timeout)
+{
+    if(url.find("https") != string::npos)
+        return http_client_request_ssl(url, params, method, content_type, redirects, timeout);
+    else
+        return http_client_request_no_ssl(url, params, method, content_type, redirects, timeout);
+}
 
 
 namespace ssl = boost::asio::ssl; // from <boost/asio/ssl.hpp>
