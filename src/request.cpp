@@ -1,5 +1,4 @@
 #include "request.h"
-#include <network/uri.hpp>
 
 using namespace std;
 

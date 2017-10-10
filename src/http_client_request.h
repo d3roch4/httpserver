@@ -8,7 +8,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/ssl.hpp>
-#include <network/uri.hpp>
+#include <boost/regex.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -49,23 +49,35 @@ http::response<http::string_body> http_client_request_no_ssl(const string& url,
     tcp::resolver resolver{ios};
     tcp::socket socket{ios};
 
+
+    boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+    boost::cmatch what;
+    if( regex_match(url.c_str(), what, ex))
+    {
+        cout << "protocol: " << string(what[1].first, what[1].second) << endl;
+        cout << "domain:   " << string(what[2].first, what[2].second) << endl;
+        cout << "port:     " << string(what[3].first, what[3].second) << endl;
+        cout << "path:     " << string(what[4].first, what[4].second) << endl;
+        cout << "query:    " << string(what[5].first, what[5].second) << endl;
+        cout << "fragment: " << string(what[6].first, what[6].second) << endl;
+    }
+
     // Look up the domain name
-    network::uri uri{url};
-    auto const lookup = resolver.resolve( tcp::resolver::query(uri.host().to_string(), uri.scheme().to_string()) );
+    auto const lookup = resolver.resolve( tcp::resolver::query(string(what[2].first, what[2].second), string(what[3].first, what[3].second)) );
 
     // Make the connection on the IP address we get from a lookup
     boost::asio::connect(socket, lookup);
 
     // Set up an HTTP request message
-    string target = uri.path().to_string();
-    string query = uri.query().to_string();
+    string target = string(what[4].first, what[4].second);
+    string query = string(what[5].first, what[5].second);
     if( method == http::verb::get ){
         query += (query.size()?"&":"") + (params.size()?params:"");
     }
     target += query.size()?'?'+query:"";
 
     http::request<http::string_body> req{method, target, 11};
-    req.set(http::field::host, uri.host().to_string());
+    req.set(http::field::host, string(what[2].first, what[2].second));
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
     if(method != http::verb::get){
         req.set(http::field::content_length, params.size());
@@ -115,9 +127,20 @@ http::response<http::string_body> http_client_request_ssl(const string& url,
     tcp::resolver resolver{ios};
     ssl::stream<tcp::socket> stream{ios, ctx};
 
+    boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+    boost::cmatch what;
+    if( regex_match(url.c_str(), what, ex))
+    {
+        cout << "protocol: " << string(what[1].first, what[1].second) << endl;
+        cout << "domain:   " << string(what[2].first, what[2].second) << endl;
+        cout << "port:     " << string(what[3].first, what[3].second) << endl;
+        cout << "path:     " << string(what[4].first, what[4].second) << endl;
+        cout << "query:    " << string(what[5].first, what[5].second) << endl;
+        cout << "fragment: " << string(what[6].first, what[6].second) << endl;
+    }
+
     // Look up the domain name
-    network::uri uri{url};
-    auto const lookup = resolver.resolve( tcp::resolver::query(uri.host().to_string(), uri.scheme().to_string()) );
+    auto const lookup = resolver.resolve( tcp::resolver::query(string(what[2].first, what[2].second), string(what[3].first, what[3].second)) );
 
     // Make the connection on the IP address we get from a lookup
     boost::asio::connect(stream.next_layer(), lookup);
@@ -126,15 +149,15 @@ http::response<http::string_body> http_client_request_ssl(const string& url,
     stream.handshake(ssl::stream_base::client);
 
     // Set up an HTTP request message
-    string target = uri.path().to_string();
-    string query = uri.query().to_string();
+    string target = string(what[4].first, what[4].second);
+    string query = string(what[5].first, what[5].second);
     if( method == http::verb::get ){
         query += (query.size()?"&":"") + (params.size()?params:"");
     }
     target += query.size()?'?'+query:"";
 
     http::request<http::string_body> req{method, target, 11};
-    req.set(http::field::host, uri.host().to_string());
+    req.set(http::field::host, string(what[2].first, what[2].second));
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
     if(method != http::verb::get){
         req.set(http::field::content_length, params.size());
