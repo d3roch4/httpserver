@@ -16,7 +16,7 @@
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 namespace http = boost::beast::http;    // from <boost/beast/http.
 namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
-
+using namespace std;
 
 enum method
 {

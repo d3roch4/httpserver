@@ -26,6 +26,6 @@ install ( DIRECTORY src/
   
 set(${PROJECT_NAME}_INCLUDE ${PROJECT_SOURCE_DIR}/src ${BEAST_INCLUDE} ${JSONCPP_INCLUDE}
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
-set(${PROJECT_NAME}_LIBS ${PROJECT_NAME} libjsoncpp ssl crypto
+set(${PROJECT_NAME}_LIBS ${PROJECT_NAME} libjsoncpp ssl crypto pthread
     CACHE INTERNAL "${PROJECT_NAME}: Library Directories" FORCE)
    
