@@ -8,6 +8,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <thread>
 
 namespace httpserver
 {
@@ -15,7 +16,9 @@ namespace httpserver
 using namespace boost::asio;         // from <boost/asio.hpp>
 using namespace boost::beast;    // from <boost/beast/http.hpp>
 
-HttpServer::HttpServer(const string& address, unsigned short port, const string& public_dir ) :
+HttpServer::HttpServer(const string& address, unsigned short port, const string& public_dir, size_t threads) :
+    thread_qtd{threads},
+    ios{threads},
     acceptor{ios, {ip::address::from_string(address), port}},
     router{public_dir}
 {
@@ -29,7 +32,10 @@ void HttpServer::addRoute(const string &path, func_route route, func_filter filt
 
 void HttpServer::run()
 {
-    ios.run();
+    for(;;){
+        ios.poll();
+        std::this_thread::sleep_for(chrono::microseconds(500));
+    }
 }
 
 namespace my_program_state

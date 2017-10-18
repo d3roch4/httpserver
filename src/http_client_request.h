@@ -49,21 +49,25 @@ http::response<http::string_body> http_client_request_no_ssl(const string& url,
     tcp::resolver resolver{ios};
     tcp::socket socket{ios};
 
-
+    string port;
     boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
     boost::cmatch what;
     if( regex_match(url.c_str(), what, ex))
     {
+        port.assign(what[3].first, what[3].second);
+        if(port.empty()) port = "80";
+#ifdef DEBUG
         cout << "protocol: " << string(what[1].first, what[1].second) << endl;
         cout << "domain:   " << string(what[2].first, what[2].second) << endl;
         cout << "port:     " << string(what[3].first, what[3].second) << endl;
         cout << "path:     " << string(what[4].first, what[4].second) << endl;
         cout << "query:    " << string(what[5].first, what[5].second) << endl;
         cout << "fragment: " << string(what[6].first, what[6].second) << endl;
+#endif
     }
 
     // Look up the domain name
-    auto const lookup = resolver.resolve( tcp::resolver::query(string(what[2].first, what[2].second), string(what[3].first, what[3].second)) );
+    auto const lookup = resolver.resolve( tcp::resolver::query(string(what[2].first, what[2].second), port) );
 
     // Make the connection on the IP address we get from a lookup
     boost::asio::connect(socket, lookup);
@@ -127,20 +131,25 @@ http::response<http::string_body> http_client_request_ssl(const string& url,
     tcp::resolver resolver{ios};
     ssl::stream<tcp::socket> stream{ios, ctx};
 
+    string port;
     boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
     boost::cmatch what;
     if( regex_match(url.c_str(), what, ex))
     {
+        port.assign(what[3].first, what[3].second);
+        if(port.empty()) port = "443";
+#ifdef DEBUG
         cout << "protocol: " << string(what[1].first, what[1].second) << endl;
         cout << "domain:   " << string(what[2].first, what[2].second) << endl;
         cout << "port:     " << string(what[3].first, what[3].second) << endl;
         cout << "path:     " << string(what[4].first, what[4].second) << endl;
         cout << "query:    " << string(what[5].first, what[5].second) << endl;
         cout << "fragment: " << string(what[6].first, what[6].second) << endl;
+#endif
     }
 
     // Look up the domain name
-    auto const lookup = resolver.resolve( tcp::resolver::query(string(what[2].first, what[2].second), string(what[3].first, what[3].second)) );
+    auto const lookup = resolver.resolve( tcp::resolver::query(string(what[2].first, what[2].second), port) );
 
     // Make the connection on the IP address we get from a lookup
     boost::asio::connect(stream.next_layer(), lookup);
@@ -318,27 +327,5 @@ load_root_certificates(ssl::context& ctx)
 
 
 
-
-#endif
-#if 0
-
-#include <iostream>
-#include <boost/network/protocol/http/client.hpp>
-using namespace std;
-
-enum method
-{
-    GET,
-    POST
-};
-
-typedef boost::network::http::client http_client;
-
-http_client::response http_client_request(const string& url,
-                       const string& params = "",
-                       method method = GET,
-                       const string& content_type = "application/x-www-form-urlencoded",
-                       bool redirects = true,
-                       int timeout = 10);
 
 #endif // CLIENT_REQUEST_H
