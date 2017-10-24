@@ -11,6 +11,10 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 file(GLOB CPP_FILES src/*.cpp)
 add_library(${PROJECT_NAME} ${CPP_FILES})
 
+if(MSVS OR MSYS OR MINGW)
+    target_link_libraries(${PROJECT_NAME}   ws2_32 wsock32)
+endif ()
+
 ###### dependencies ######
 if(NOT EXISTS ${CMAKE_BINARY_DIR}/beast.cmake)
     file(DOWNLOAD https://github.com/d3roch4/CMakeTemplates/raw/master/beast.cmake ${CMAKE_BINARY_DIR}/beast.cmake)
