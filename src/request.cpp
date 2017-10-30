@@ -2,26 +2,21 @@
 
 using namespace std;
 
-bool insert_files(const auto& body)
+bool insert_files(boost::beast::http::request<boost::beast::http::string_body> &req, std::unordered_map<std::string, std::string>& files)
 {
-    /*bool isUpFile=false;
-    for(auto header: headers)
-        if(header.name == "uploaded_file")
-            isUpFile = true;
-    if(!isUpFile)
-        return false;
-
     const char* boundary = "+\r\n+";
     const char* filenametag = "filename=";
 
-    size_t sepName = body.find(filenametag)+strlen(filenametag);
-    size_t sepFile = body.find(boundary);
-    size_t sepFileEnd = body.find_last_of(boundary);
-    if((sepName & sepFile & sepFileEnd) != string::npos){
-        const string& name = body.substr(sepName, sepFile-sepName);
-        const string& file = body.substr(sepFile+strlen(boundary), sepFileEnd-sepFile);
+    size_t sepName = req.body().find(filenametag);
+    size_t sepFile = req.body().find(boundary);
+    size_t sepFileEnd = req.body().find_last_of(boundary);
+    if(sepName!=string::npos && sepFile!=string::npos && sepFileEnd!=string::npos){
+        sepName+=strlen(filenametag);;
+        const string& name = req.body().substr(sepName, sepFile-sepName);
+        const string& file = req.body().substr(sepFile+strlen(boundary), sepFileEnd-sepFile);
         files[name] = file;
-    }*/
+        return true;
+    }
     return false;
 }
 
@@ -53,7 +48,7 @@ httpserver::request::request(http::request<boost::beast::http::string_body> &req
         insert_parameters(query.to_string(), this);
     }
     Json::Reader reader;
-    if(!insert_files(req.body()))
+    if(!insert_files(req, files))
         if(!reader.parse(req.body(), data))
             insert_parameters(req.body(), this);
 }
