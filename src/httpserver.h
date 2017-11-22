@@ -23,7 +23,7 @@ public:
     void run();
 private:
     // "Loop" forever accepting new connections.
-    void http_server(tcp::acceptor& acceptor, tcp::socket& socket);
+    void loop(tcp::acceptor& acceptor, tcp::socket& socket);
 
     size_t thread_qtd=4;
     boost::asio::io_service ios{thread_qtd};

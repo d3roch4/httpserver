@@ -20,6 +20,7 @@ public:
     response bad_request(const string& content = "bad_request");
     response not_found(const string& content = "not_found");
     response no_content(const string& content = "no_content");
+    response redirect(const string& to);
 
 };
 

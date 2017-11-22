@@ -22,7 +22,7 @@ HttpServer::HttpServer(const string& address, unsigned short port, const string&
     acceptor{ios, {ip::address::from_string(address), port}},
     router{public_dir}
 {
-    http_server(acceptor, socket);
+    loop(acceptor, socket);
 }
 
 void HttpServer::addRoute(const string &path, func_route route, func_filter filter)
@@ -38,22 +38,6 @@ void HttpServer::run()
     }
 }
 
-namespace my_program_state
-{
-    std::size_t
-    request_count()
-    {
-        static std::size_t count = 0;
-        return ++count;
-    }
-
-    std::time_t
-    now()
-    {
-        return std::time(0);
-    }
-}
-
 class http_connection : public std::enable_shared_from_this<http_connection>
 {
 public:
@@ -61,6 +45,7 @@ public:
         : socket_(std::move(socket)),
           router_{&router}
     {
+        parser_.body_limit(1024 * 1024 * 32); // 32MB of limit upload file
     }
 
     // Initiate the asynchronous operations associated with the connection.
@@ -79,6 +64,9 @@ private:
     // The buffer for performing reads.
     boost::beast::flat_buffer buffer_{8192};
 
+    // The parser message.
+    http::parser<true, http::string_body> parser_; // limit body of 32MB
+
     // The request message.
     http::request<http::string_body> request_;
 
@@ -94,12 +82,20 @@ private:
     {
         auto self = shared_from_this();
 
-        http::async_read( socket_, buffer_, request_,
+        http::async_read( socket_, buffer_, parser_.base(),
             [self](boost::beast::error_code ec, std::size_t bytes_transferred)
             {
                 boost::ignore_unused(bytes_transferred);
-                if(!ec)
+                if(!ec){
+                    self->request_ = self->parser_.release();
                     self->process_request();
+                }
+                else{
+                    std::cerr << BOOST_CURRENT_FUNCTION <<" - ERROR: " << ec.message()
+                              << ", on request: "<<self->request_.target().to_string() << std::endl;
+                    self->response_erro(ec.message());
+                }
+                self->write_response();
             });
     }
 
@@ -109,13 +105,15 @@ private:
         try{
             router_->route(request_, response_);
         }catch(const std::exception& ex){
-            std::cerr << "router::operator() - ERROR: " << ex.what() << ", on request: "<<request_.target().to_string() << ", with body: "/*<< request_.body().to_string()*/ << '\n';
-            response_.result(http::status::internal_server_error);
-            response_.set(http::field::content_type, "text/plain");
-            response_.body() = ex.what();
+            std::cerr << BOOST_CURRENT_FUNCTION <<" - ERROR: " << ex.what() << ", on request: "<<request_.target().to_string() << ", with body: "/*<< request_.body().to_string()*/ << '\n';
+            response_erro(ex.what());
         }
+    }
 
-        write_response();
+    void response_erro(const string& msg){
+        response_.result(http::status::internal_server_error);
+        response_.set(http::field::content_type, "text/plain");
+        response_.body() = msg;
     }
 
     // Asynchronously transmit the response message.
@@ -149,13 +147,13 @@ private:
 };
 
 
-void HttpServer::http_server(tcp::acceptor &acceptor, tcp::socket &socket)
+void HttpServer::loop(tcp::acceptor &acceptor, tcp::socket &socket)
 {
     acceptor.async_accept(socket, [&](boost::beast::error_code ec)
       {
           if(!ec)
               std::make_shared<http_connection>(std::move(socket), router)->start();
-          http_server(acceptor, socket);
+          loop(acceptor, socket);
       });
 }
 

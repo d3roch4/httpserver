@@ -98,11 +98,17 @@ http::response<http::string_body> http_client_request_no_ssl(const string& url,
     // Declare a container to hold the response
     http::response<http::string_body> res;
 
+    // The parser message.
+    http::parser<false, http::string_body> parser;
+    parser.body_limit(1024 * 1024 * 96); // 96MB of limit upload file
+
     // Receive the HTTP response
     boost::system::error_code ec;
-    http::read(socket, buffer, res, ec);
+    http::read(socket, buffer, parser.base(), ec);
     if(ec)
         throw boost::system::system_error{ec};
+    else
+        res = parser.release();
 
     if(redirects && res.base().result_int() == 301)
         return http_client_request(url, params, method, content_type, redirects, timeout);

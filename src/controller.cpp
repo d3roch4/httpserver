@@ -50,4 +50,12 @@ response Controller::no_content(const string &content)
     return response;
 }
 
+response Controller::redirect(const string &to)
+{
+    httpserver::response response;
+    response.result(http::status::temporary_redirect);
+    response.base().insert("Location", to);
+    return response;
 }
+
+} // namespace

@@ -33,10 +33,8 @@ void Router::route(httpserver::request &&request, httpserver::response &response
         }else
             response = func(request);
     }else{
-
-        //for(auto& dir: docroot)
-            if(route_to_file(public_dir+path.to_string(), response))
-                return;
+        if(route_to_file(public_dir+path.to_string(), response))
+            return;
 
         response.result(http::status::not_found);
         response.set(http::field::content_type, "text/plain");
