@@ -105,7 +105,9 @@ private:
         try{
             router_->route(request_, response_);
         }catch(const std::exception& ex){
-            std::cerr << BOOST_CURRENT_FUNCTION <<" - ERROR: " << ex.what() << ", on request: "<<request_.target().to_string() << ", with body: "/*<< request_.body().to_string()*/ << '\n';
+            std::cerr << BOOST_CURRENT_FUNCTION <<" - ERROR: " << ex.what()
+                      << ", on request: "<<request_.target().to_string()
+                      << ", with body: "<< request_.body() << '\n';
             response_erro(ex.what());
         }
     }
