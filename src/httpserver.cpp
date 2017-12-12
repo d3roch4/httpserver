@@ -25,11 +25,6 @@ HttpServer::HttpServer(const string& address, unsigned short port, const string&
     loop(acceptor, socket);
 }
 
-void HttpServer::addRoute(const string &path, func_route route, func_filter filter)
-{
-    router.add(path, route, filter);
-}
-
 void HttpServer::run()
 {
     for(;;){

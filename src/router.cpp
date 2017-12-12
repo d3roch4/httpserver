@@ -9,7 +9,7 @@ Router::Router(const string& public_dir_) :
 
 }
 
-void Router::add(const string &path, func_route route, func_filter filter)
+void Router::add(const string &path, shared_ptr<i_router_request> route, func_filter filter)
 {
     mapRoutes.insert({path, {route, filter}});
 }
@@ -25,13 +25,13 @@ void Router::route(httpserver::request &&request, httpserver::response &response
     if(itr != mapRoutes.end()){
         //contatos::request req = request;
         auto& pair = itr->second;
-        auto& func = pair.first;
-        auto& filter = pair.second;
+        auto& route_request = pair.route;
+        auto& filter = pair.filter;
         if(filter != nullptr){
             if( filter(request, response) )
-                response = func(request);
+                response = route_request->call(request);
         }else
-            response = func(request);
+            response = route_request->call(request);
     }else{
         if(route_to_file(public_dir+path.to_string(), response))
             return;

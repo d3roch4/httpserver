@@ -1,0 +1,6 @@
+[submodule "deps/mor"]
+	path = deps/mor
+	url = https://github.com/d3roch4/mor.git
+[submodule "deps/beast"]
+	path = deps/beast
+	url = https://github.com/d3roch4/beast.git
