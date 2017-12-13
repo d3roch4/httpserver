@@ -22,7 +22,7 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/jsoncpp.cmake OR NOT EXISTS ${CMAKE_BINARY_DIR
 endif()
 include(${CMAKE_BINARY_DIR}/jsoncpp.cmake)
 include(${CMAKE_BINARY_DIR}/beast.cmake)
-if(EXISTS deps/mor/CMakeLists.txt)
+if(EXISTS ${PROJECT_SOURCE_DIR}/deps/mor/CMakeLists.txt AND NOT EXISTS TARGET mor)
     add_subdirectory(deps/mor)
 endif()
 ###### dependencies ######
