@@ -5,6 +5,7 @@ project(httpserver)
 find_package(Boost REQUIRED COMPONENTS system)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+option(BUILD_EXAMPLE "Build example code" OFF)
 
 file(GLOB CPP_FILES src/*.cpp)
 add_library(${PROJECT_NAME} ${CPP_FILES})
@@ -47,4 +48,6 @@ set(${PROJECT_NAME}_LIBS ${PROJECT_NAME} libjsoncpp ssl crypto pthread
    
 
 #### Test
-add_subdirectory(test)
+if(BUILD_EXAMPLE)
+    add_subdirectory(example)
+endif()
