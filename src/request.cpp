@@ -1,4 +1,5 @@
 #include "request.h"
+#include <boost/beast/core.hpp>
 
 using namespace std;
 

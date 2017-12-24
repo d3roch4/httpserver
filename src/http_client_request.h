@@ -26,7 +26,8 @@ enum method
 
 
 void load_root_certificates(ssl::context& ctx);
-http::response<http::string_body> http_client_request(const string& url,
+
+inline http::response<http::string_body> http_client_request(const string& url,
                        const string& params = "",
                        http::verb method = http::verb::get,
                        const string& content_type = "application/x-www-form-urlencoded",
@@ -35,7 +36,7 @@ http::response<http::string_body> http_client_request(const string& url,
 
 
 
-http::response<http::string_body> http_client_request_no_ssl(const string& url,
+inline http::response<http::string_body> http_client_request_no_ssl(const string& url,
                        const string& params = "",
                        http::verb method = http::verb::get,
                        const string& content_type = "application/x-www-form-urlencoded",
@@ -116,7 +117,7 @@ http::response<http::string_body> http_client_request_no_ssl(const string& url,
     return res;
 }
 
-http::response<http::string_body> http_client_request_ssl(const string& url,
+inline http::response<http::string_body> http_client_request_ssl(const string& url,
                        const string& params = "",
                        http::verb method = http::verb::get,
                        const string& content_type = "application/x-www-form-urlencoded",
