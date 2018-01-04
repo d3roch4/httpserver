@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.10)
 
 project(httpserver)
 
-find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system regex)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 option(BUILD_EXAMPLE "Build example code" OFF)
