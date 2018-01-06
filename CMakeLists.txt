@@ -33,6 +33,7 @@ set(${PROJECT_NAME}_INCLUDE
     ${PROJECT_SOURCE_DIR}/src
     ${JSONCPP_INCLUDE}
     ${BEAST_INCLUDE}
+    /usr/include/libcxxabi/
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE
 )
 

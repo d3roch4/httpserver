@@ -13,7 +13,7 @@ void load_root_certificates(boost::asio::ssl::context &ctx)
         throw boost::system::system_error{ec};
 }
 
-http::response<boost::beast::http::string_body> http_client_request(const std::__cxx11::string &url, const std::__cxx11::string &params, boost::beast::http::verb method, const std::__cxx11::string &content_type, bool redirects, int timeout)
+http::response<boost::beast::http::string_body> http_client_request(const std::string &url, const std::string &params, boost::beast::http::verb method, const std::string &content_type, bool redirects, int timeout)
 {
     if(url.find("https") != string::npos)
         return http_client_request_ssl(url, params, method, content_type, redirects, timeout);
@@ -21,7 +21,7 @@ http::response<boost::beast::http::string_body> http_client_request(const std::_
         return http_client_request_no_ssl(url, params, method, content_type, redirects, timeout);
 }
 
-http::response<boost::beast::http::string_body> http_client_request_ssl(const std::__cxx11::string &url, const std::__cxx11::string &params, boost::beast::http::verb method, const std::__cxx11::string &content_type, bool redirects, int timeout)
+http::response<boost::beast::http::string_body> http_client_request_ssl(const std::string &url, const std::string &params, boost::beast::http::verb method, const std::string &content_type, bool redirects, int timeout)
 {
 
     // The io_service is required for all I/O
@@ -101,7 +101,7 @@ http::response<boost::beast::http::string_body> http_client_request_ssl(const st
     return res;
 }
 
-http::response<boost::beast::http::string_body> http_client_request_no_ssl(const std::__cxx11::string &url, const std::__cxx11::string &params, boost::beast::http::verb method, const std::__cxx11::string &content_type, bool redirects, int timeout)
+http::response<boost::beast::http::string_body> http_client_request_no_ssl(const std::string &url, const std::string &params, boost::beast::http::verb method, const std::string &content_type, bool redirects, int timeout)
 {
     // The io_service is required for all I/O
     boost::asio::io_service ios;

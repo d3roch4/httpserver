@@ -21,7 +21,7 @@ bool insert_files(boost::beast::http::request<boost::beast::http::string_body> &
     return false;
 }
 
-void insert_parameters(const auto& query, httpserver::request* req)
+void insert_parameters(const string& query, httpserver::request* req)
 {
     if( ! query.empty()){
         vector<string> vecStr;
