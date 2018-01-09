@@ -5,7 +5,7 @@
 #include <fstream>
 #include <map>
 #include "request.h"
-#include "mor.h"
+#include "entity.h"
 
 namespace httpserver
 {
@@ -35,7 +35,7 @@ struct router_request : i_router_request
         unordered_map<string, string> params = req.parameters;
         T obj;
         Entity<T>* entity = & obj;
-        for(auto& col: entity->_columns){
+        for(auto& col: entity->_fields){
             auto it = params.find(col->name);
             if(it != params.end())
                 col->setValue(it->second.c_str());

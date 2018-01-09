@@ -8,9 +8,9 @@ struct User : Entity<User>
     string password;
 
     User(){
-        column(name, "name");
-        column(login, "login");
-        column(password, "password");
+        field(name, "name");
+        field(login, "login");
+        field(password, "password");
     }
 };
 
