@@ -19,6 +19,8 @@ Crie um novo projeto e adicione o `httpserver` como um submodulo do seu projeto,
 ```
   git submodule add https://github.com/d3roch4/httpserver deps/httpserver
   git submodule update --init --recursive
+  git pull --recurse-submodules
+  git submodule update --remote --recursive
 ```
 - Crie o arquivo `CMakeLists.txt`:
 ```cmake
