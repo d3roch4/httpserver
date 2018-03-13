@@ -1,53 +1,26 @@
-cmake_minimum_required(VERSION 2.8.10)
-
 project(httpserver)
-
-find_package(Boost REQUIRED COMPONENTS system)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+cmake_minimum_required(VERSION 2.8)
 option(BUILD_EXAMPLE "Build example code" OFF)
 
-file(GLOB CPP_FILES src/*.cpp)
-add_library(${PROJECT_NAME} ${CPP_FILES})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-target_link_libraries(${PROJECT_NAME} mor libjsoncpp ssl crypto pthread ${Boost_LIBRARIES})
-if(MSVS OR MSYS OR MINGW)
-    target_link_libraries(${PROJECT_NAME}   ws2_32 wsock32)
-endif ()
+file(GLOB CPP_FILES httpserver/*.cpp)
+file(GLOB HPP_FILES httpserver/*.h)
+add_library(${PROJECT_NAME} ${CPP_FILES} ${HPP_FILES})
+target_include_directories(${PROJECT_NAME} PUBLIC ./)
 
+find_package(Boost REQUIRED COMPONENTS system)
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} pthread)
 
-###### dependencies ######
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/jsoncpp.cmake OR NOT EXISTS ${CMAKE_BINARY_DIR}/beast.cmake)
-    file(DOWNLOAD https://github.com/d3roch4/CMakeTemplates/raw/master/jsoncpp.cmake ${CMAKE_BINARY_DIR}/jsoncpp.cmake)
-    file(DOWNLOAD https://github.com/d3roch4/CMakeTemplates/raw/master/beast.cmake ${CMAKE_BINARY_DIR}/beast.cmake)
-endif()
-include(${CMAKE_BINARY_DIR}/jsoncpp.cmake)
-include(${CMAKE_BINARY_DIR}/beast.cmake)
-if(EXISTS ${PROJECT_SOURCE_DIR}/deps/mor/CMakeLists.txt AND NOT TARGET mor)
-    add_subdirectory(deps/mor)
-endif()
-###### dependencies ######
+execute_process(COMMAND git submodule update --remote --recursive deps/mor WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+add_subdirectory(deps/mor)
+target_link_libraries(${PROJECT_NAME} mor)
 
+set(RAPIDJSON_BUILD_EXAMPLES OFF)
+execute_process(COMMAND cd deps && wget https://github.com/Tencent/rapidjson/archive/v1.1.0.tar.gz -O - | tar -xz && cd - WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+add_subdirectory(deps/rapidjson-1.1.0)
+target_include_directories(${PROJECT_NAME} PUBLIC deps/rapidjson-1.1.0/include)
 
-set(${PROJECT_NAME}_INCLUDE
-    ${PROJECT_SOURCE_DIR}/src
-    ${JSONCPP_INCLUDE}
-    ${BEAST_INCLUDE}
-    CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE
-)
-
-include_directories(${httpserver_INCLUDE})
-target_include_directories(${PROJECT_NAME} PUBLIC ${httpserver_INCLUDE})
-
-install ( DIRECTORY src/
-  DESTINATION include/
-  FILES_MATCHING PATTERN "*.hpp")
-
-set(${PROJECT_NAME}_LIBS ${PROJECT_NAME} libjsoncpp ssl crypto pthread
-    CACHE INTERNAL "${PROJECT_NAME}: Library Directories" FORCE)
-   
-
-#### Test
 if(BUILD_EXAMPLE)
-    add_subdirectory(example)
+  add_subdirectory(exemplo)
 endif()
