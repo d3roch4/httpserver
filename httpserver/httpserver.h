@@ -5,7 +5,6 @@
 #include "Roteador.h"
 #include "conversorrequisicao.h"
 #include "conversorrequisicaoparametros.h"
-#include "conversorrequisicaobodytojson.h"
 
 namespace httpserver
 {

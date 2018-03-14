@@ -12,6 +12,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ./)
 find_package(Boost REQUIRED COMPONENTS system)
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} pthread)
 
+execute_process(COMMAND git submodule update --init WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 execute_process(COMMAND git submodule update --remote --recursive deps/mor WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(deps/mor)
 target_link_libraries(${PROJECT_NAME} mor)

@@ -1,30 +1,39 @@
 #include "httpserver/httpserver.h"
+#include "httpserver/conversorrequisicaobody.h"
 
 using namespace httpserver;
 
-class ImovelControlador
+struct Carro : Entity<Carro>
 {
-    response buscar(string cidade, string bairro){
+    string marca;
+    string modelo;
+    int ano;
+};
+
+class CarroControlador
+{
+public:
+    response buscar(string marca, string modelo){
         response resp;
-        resp.body() = "Cidade: "+cidade+" bairro: "+bairro;
+        resp.body() = "Cidade: "+marca+" bairro: "+modelo;
         return resp;
     }
 
-    response salvar(rapidjson::Document* json){}
+    response salvar(Carro& carro){}
     response alterar(string id){}
     response remover(string id){}
-public:
-    ImovelControlador(HttpServer& bs){
-        bs.route(verb::get, "/imoveis", &ImovelControlador::buscar, this, {"cidade", "bairro"});
-        bs.route<rapidjson::Document*>(verb::post, "/imoveis", &ImovelControlador::salvar, this);
-        bs.route(verb::put, "/imoveis", &ImovelControlador::alterar, this, {"id"});
-        bs.route(verb::delete_, "/imoveis", &ImovelControlador::remover, this, {"id"});
+    CarroControlador(HttpServer& bs){
+        bs.route(verb::get, "/imoveis", &CarroControlador::buscar, this, {"marca", "modelo"});
+        bs.route<Carro&>(verb::post, "/imoveis", &CarroControlador::salvar, this);
+        bs.route(verb::put, "/imoveis", &CarroControlador::alterar, this, {"id"});
+        bs.route(verb::delete_, "/imoveis", &CarroControlador::remover, this, {"id"});
     }
 };
 
 int main()
 {
     httpserver::HttpServer server;
-    ImovelControlador control{server};
+    CarroControlador carro{server};
+//    auto func = make_generic_function_ptr(&CarroControlador::buscar, carro);
     server.run();
 }
