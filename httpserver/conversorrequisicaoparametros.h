@@ -3,22 +3,22 @@
 
 #include "iConversorRequisicao.h"
 #include <vector>
+#include "invoker.h"
+#include "parser_body.h"
+#include "parser_url.h"
 
 namespace httpserver
 {
 using namespace std;
 
-
-vector<pair<char*,char*>> parser_path_to_params(char *url, const vector<string> &params);
-
-template<typename F, typename I>
+template<typename F, typename I, typename B, int NumberParameters>
 class ConversorRequisicaoParametros : public iConversorRequisicao
 {
     F function;
     I* instance;
     vector<string> parameters;
     string prefix;
-
+    parser_body<B> body;
 public:
     ConversorRequisicaoParametros(const string& prefix, F ptr, I* instance, const vector<string>& params) {
         this->parameters = params;
@@ -30,51 +30,41 @@ public:
     response converter(request &request)
     {
         const string& url = request.target().to_string().substr(prefix.length());
-        vector<pair<char*,char*>>&& vec = parser_path_to_params((char*)url.c_str(), parameters);
+        std::array<char*, NumberParameters> array;
+        const string& erro = parser_path_to_params<NumberParameters>((char*)url.c_str(), parameters, array);
 
-        if(vec.size()!=parameters.size()){
-            throw runtime_error("ConversorRequisicaoParametros::converter:> parameters in url are invalids.");
-        }
+        if(erro.size())
+            return bad_request(erro);
 
-        void(*func)() = (void(*)()) function;
-
-        switch (parameters.size()) {
-        case 0:
-            return std::bind((response(*)(I*))func, instance)();
-        case 1:
-            return std::bind((response(*)(I*,string))func, instance, vec[0].second)();
-        case 2:
-            return std::bind((response(*)(I*,string,string))func, instance, vec[0].second, vec[1].second)();
-        case 3:
-            return std::bind((response(*)(I*,string,string,string))func, instance, vec[0].second, vec[1].second, vec[2].second)();
-        case 4:
-            return std::bind((response(*)(I*,string,string,string,string))func, instance, vec[0].second, vec[1].second, vec[2].second, vec[3].second)();
-        case 5:
-            return std::bind((response(*)(I*,string,string,string,string,string))func, instance, vec[0].second, vec[1].second, vec[2].second, vec[3].second, vec[4].second)();
-        case 6:
-            return std::bind((response(*)(I*,string,string,string,string,string,string))func, instance, vec[0].second, vec[1].second, vec[2].second, vec[3].second, vec[4].second, vec[5].second)();
-        case 7:
-            return std::bind((response(*)(I*,string,string,string,string,string,string,string))func, instance, vec[0].second, vec[1].second, vec[2].second, vec[3].second, vec[4].second, vec[5].second, vec[6].second)();
-        case 8:
-            return std::bind((response(*)(I*,string,string,string,string,string,string,string,string))func, instance, vec[0].second, vec[1].second, vec[2].second, vec[3].second, vec[4].second, vec[5].second, vec[6].second, vec[7].second)();
-        case 9:
-            return std::bind((response(*)(I*,string,string,string,string,string,string,string,string,string))func, instance, vec[0].second, vec[1].second, vec[2].second, vec[3].second, vec[4].second, vec[5].second, vec[6].second, vec[7].second, vec[8].second)();
-        case 10:
-            return std::bind((response(*)(I*,string,string,string,string,string,string,string,string,string,string))func, instance, vec[0].second, vec[1].second, vec[2].second, vec[3].second, vec[4].second, vec[5].second, vec[6].second, vec[7].second, vec[8].second, vec[9].second)();
-        default:
-            throw runtime_error("ConversorRequisicaoParametros::converter:> parameters in url are invalids.");
-            break;
-        }
+        auto tuple = a2t(array);
+        const auto& tuple2 = body(request, tuple);
+        return invoker(function, instance, tuple2);
     }
 };
 
 
-template<>
-struct FabricaConversorRequisicao<void>{
-    template<class F, class I>
-    shared_ptr<iConversorRequisicao> criar(const string &path, const F func, I* instancia, const vector<string>& parametros={})
+template<class B>
+struct CriadorConversorRequisicao<B&>
+{
+    template<class F, class I, typename... Args>
+    shared_ptr<iConversorRequisicao> criar(const string &path, const F func, I* instancia, const Args&... args)
     {
-        auto cvr = make_shared<ConversorRequisicaoParametros<F,I>>(path, func, instancia, parametros);
+        vector<string> parametros;
+        parametros.emplace_back(args...);
+        auto cvr = make_shared<ConversorRequisicaoParametros<F,I,B, sizeof...(args)>>(path, func, instancia, parametros);
+        return cvr;
+    }
+};
+
+template<>
+struct CriadorConversorRequisicao<void>
+{
+    template<class F, class I, typename... Args>
+    shared_ptr<iConversorRequisicao> criar(const string &path, const F func, I* instancia, const Args&... args)
+    {
+        vector<string> parametros;
+        parametros.emplace_back(args...);
+        auto cvr = make_shared<ConversorRequisicaoParametros<F,I,void, sizeof...(args)>>(path, func, instancia, parametros);
         return cvr;
     }
 };

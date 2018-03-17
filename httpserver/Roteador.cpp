@@ -11,19 +11,6 @@ void Roteador::rota(verb method, const string &path, shared_ptr<iConversorRequis
   mRotas[(int)method][path] = tratador;
 }
 
-// Returns a not found response
-auto const not_found = [](boost::beast::string_view target)
-{
-    boost::beast::http::response<boost::beast::http::string_body> res;
-    res.result(boost::beast::http::status::not_found);
-    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-    res.set(boost::beast::http::field::content_type, "text/html");
-//    res.keep_alive(req.keep_alive());
-    res.body() = "The resource '" + target.to_string() + "' was not found.";
-    res.prepare_payload();
-    return res;
-};
-
 response Roteador::despachar(request &req)
 {
     for(auto& method: mRotas){

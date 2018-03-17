@@ -16,7 +16,7 @@ public:
 
 
 template<>
-struct FabricaConversorRequisicao<request&>{
+struct CriadorConversorRequisicao<request&>{
     template<class F, class I>
     shared_ptr<iConversorRequisicao> criar(const string &path, const F func, I* instancia, const vector<string>& parametros={}){
         auto cvr = make_shared<ConversorRequisicao>(std::bind(func, instancia, _1));

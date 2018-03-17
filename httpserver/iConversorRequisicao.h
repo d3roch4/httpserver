@@ -19,7 +19,9 @@ struct iConversorRequisicao
 
 
 template<class T>
-struct FabricaConversorRequisicao{};
+struct CriadorConversorRequisicao{};
 
 }
+
+
 #endif // PARSERREQUISICAO_H

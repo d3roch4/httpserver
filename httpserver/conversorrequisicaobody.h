@@ -32,9 +32,9 @@ public:
         if(vec.size()!=parameters.size()){
             throw runtime_error("ConversorRequisicaoBodyToJsonUrlToParams::converter:> parameters in url are invalids.");
         }
-        B obj = std::move(body(request));
+        B obj = body(request);
 
-        void(*func)() = reinterpret_cast<void(*)()>(function);
+        void(*func)() = (void(*)()) function;
 
         switch (parameters.size()) {
         case 0:
@@ -67,7 +67,7 @@ public:
 };
 
 template<>
-struct FabricaConversorRequisicao<Json>{
+struct CriadorConversorRequisicao<Json>{
     template<class F, class I>
     shared_ptr<iConversorRequisicao> criar(const string &path, const F func, I* instancia, const vector<string>& parametros={})
     {
@@ -78,7 +78,8 @@ struct FabricaConversorRequisicao<Json>{
 
 
 template<class T>
-struct FabricaConversorRequisicao<T&>{
+struct CriadorConversorRequisicao<T&>
+{
     template<class F, class I>
     shared_ptr<iConversorRequisicao> criar(const string &path, const F func, I* instancia, const vector<string>& parametros={})
     {

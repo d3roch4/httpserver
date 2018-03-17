@@ -15,11 +15,11 @@ class HttpServer
 {
     Roteador router_;
 public:
-    template<class P=void, typename F, typename T>
-    void route(verb method, const string &path, const F func, T* instancia, const vector<string>& parametros={})
+    template<class P=void, typename F, typename T, typename... Args >
+    void route(verb method, const string &path, const F func, T* instancia, const Args&... args)
     {
-        FabricaConversorRequisicao<P> fabrica;
-        auto cvr = fabrica.criar(path, func, instancia, parametros);
+        CriadorConversorRequisicao<P> fabrica;
+        auto cvr = fabrica.criar(path, func, instancia, args...);
         router_.rota(method, path, cvr);
     }
 
