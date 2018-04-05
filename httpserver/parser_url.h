@@ -1,37 +1,35 @@
-#ifndef PARSER_URL_H
+ #ifndef PARSER_URL_H
 #define PARSER_URL_H
+
+#define DIVISOR_URL "/?&=#"
 
 namespace httpserver
 {
 
 template<int NumberParameters>
-string parser_path_to_params(char *url, const vector<std::string> &params, std::array<char*, NumberParameters> resultr)
+bool parser_path_to_params(char *url, const vector<std::string> &params, std::array<char*, NumberParameters>& resultr)
 {
     if(params.empty())
-        return {};
+        return true;
 
-    vector<char*> paramValue;
-
-    char* pch = strtok (url,"/?&=#");
+    int i=0;
+    char* pch = strtok (url, DIVISOR_URL);
     while (pch != NULL)
     {
-        bool found=false;
         for(const string& param: params){
             if(param == pch){
                 char* name = pch; // not use
-                pch = strtok(NULL, "/?&=#");
-                paramValue.emplace_back(pch);
-                found=true;
+                pch = strtok(NULL, DIVISOR_URL);
+                resultr[i] = pch;
+                i++;
                 goto NEXTPARAM;
             }
         }
 NEXTPARAM:
-        if( ! found )
-            return "parser_path_to_params: '"+string(pch)+"' not found";
-        pch = strtok (NULL, "/?&=#");
+        pch = strtok (NULL, DIVISOR_URL);
     }
 
-    return "";
+    return i==params.size();
 }
 
 }

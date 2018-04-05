@@ -9,16 +9,17 @@ file(GLOB HPP_FILES httpserver/*.h)
 add_library(${PROJECT_NAME} ${CPP_FILES} ${HPP_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ./)
 
-find_package(Boost REQUIRED COMPONENTS system)
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} pthread)
+set(Boost_USE_STATIC_LIBS   ON)
+find_package(Boost REQUIRED COMPONENTS log system thread regex)
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} pthread ssl crypto)
 
 if(NOT TARGET mor)
     add_subdirectory(../mor mor)
 endif()
 target_link_libraries(${PROJECT_NAME} mor)
 
-include(rapidjson.cmake)
-target_include_directories(${PROJECT_NAME} PUBLIC ${RAPIDJSON_INCLUDE})
+include(jsoncpp.cmake)
+target_include_directories(${PROJECT_NAME} PUBLIC ${JSONCPP_INCLUDE})
 
 if(BUILD_EXAMPLE)
   add_subdirectory(exemplo)

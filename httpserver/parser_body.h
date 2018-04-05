@@ -8,65 +8,63 @@
 
 namespace httpserver {
 
-typedef rapidjson::Document::Object Json;
-
 template <class B>
 struct parser_body
 {
     static_assert(std::is_base_of<mor::Entity<B>, B>::value, "B is not extended of Entity<B>");
 
     template <typename... TupleElem>
-    std::tuple<B, TupleElem...> operator ()(request& req, const std::tuple<TupleElem...> &tuple)
+    std::tuple<B, TupleElem...> operator ()(B& obj, boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser& req, const std::tuple<TupleElem...> &tuple)
     {
-        B obj;
-        const auto& contentType = req[boost::beast::http::field::content_type];
-        if (contentType == "application/json"){
-
-            rapidjson::Document d; d.Parse(req.body().c_str());
-            const Json& json = d.GetObject();
-            mor::Entity<B>* ptr = (mor::Entity<B>*) &obj;
-            for(Json::MemberIterator itr=json.MemberBegin(); itr!=json.MemberEnd(); itr++)
-            {
-                auto field = ptr->_fields.begin();
-                while (field != ptr->_fields.end()) {
-                    std::unique_ptr<mor::iField>& f = *field;
-                    const auto& nameItr = itr->name.GetString();
-                    if(f->name == nameItr){
-                        rapidjson::StringBuffer buffer;
-                        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-                        itr->value.Accept(writer);
-                        f->setValue(buffer.GetString());
-                        field = ptr->_fields.end();
-                    }else{
-                        field++;
-                    }
-                }
-            }
+        const auto& contentType = req.get()[boost::beast::http::field::content_type];
+        if (contentType.find("application/json") != boost::string_view::npos){
+            boost::beast::http::request_parser<boost::beast::http::string_body> req_b{std::move(req)};
+            boost::beast::http::read(socket, buffer, req_b); // Finish reading the message
+            JSONObject json;
+            Json::Reader read;
+            read.parse(req_b.release().body(), json);
+            obj << json;
         }else
-            throw runtime_error("parser_body: "+contentType.to_string()+" not suported.");
+            throw std::runtime_error("parser_body: Content-Type: "+contentType.to_string()+" is not suported.");
 
-        return std::tuple_cat(std::make_tuple(obj), tuple);
+        auto&& t = std::tie(obj);
+        return std::tuple_cat(std::move(t), std::move(tuple));
     }
 };
 
 template <>
-struct parser_body<Json>
+struct parser_body<JSONObject>
 {
     template <typename... TupleElem>
-    std::tuple<Json, TupleElem...> operator ()(request& req, const std::tuple<TupleElem...> &tuple)
+    auto operator ()(JSONObject& json, boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser& req, const std::tuple<TupleElem...> &tuple)
     {
-        rapidjson::Document d;
-        d.Parse(req.body().c_str());
+        boost::beast::http::request_parser<boost::beast::http::string_body> req_b{std::move(req)};
+        // Finish reading the message
+        boost::beast::http::read(socket, buffer, req_b);
 
-        return std::tuple_cat(std::make_tuple(d.GetObject()), tuple);
+        to_json(req_b.release().body().c_str(), json);
+        return std::tuple_cat(std::tie(json), tuple);
     }
 };
 
 template <>
-struct parser_body<void>
+struct parser_body<file>
+{
+    template <typename... TupleElem>
+    auto operator ()(file& f, boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser& req, const std::tuple<TupleElem...> &tuple)
+    {
+        f = {socket, buffer, req};
+
+        auto&& tupleBody = std::tie(f);
+        return std::tuple_cat(std::move(tupleBody), tuple);
+    }
+};
+
+template <>
+struct parser_body<void*>
 {
     template <typename T>
-    T operator ()(request& req, const T &tup)
+    T operator ()(void*, boost::asio::ip::tcp::socket& socket, boost::beast::flat_buffer& buffer, request_parser& req, const T &tup)
     {
         return tup;
     }

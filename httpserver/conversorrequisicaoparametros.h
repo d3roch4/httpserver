@@ -1,8 +1,9 @@
 #ifndef CONVERSORREQUISICAOPARAMETROS_H
 #define CONVERSORREQUISICAOPARAMETROS_H
 
-#include "iConversorRequisicao.h"
+#include "parser_request_i.h"
 #include <vector>
+#include <forward_list>
 #include "invoker.h"
 #include "parser_body.h"
 #include "parser_url.h"
@@ -12,33 +13,38 @@ namespace httpserver
 using namespace std;
 
 template<typename F, typename I, typename B, int NumberParameters>
-class ConversorRequisicaoParametros : public iConversorRequisicao
+class ConversorRequisicaoParametros : public parser_request_i
 {
     F function;
     I* instance;
     vector<string> parameters;
-    string prefix;
-    parser_body<B> body;
+    string path;
+    parser_body<B> parserBody;
 public:
-    ConversorRequisicaoParametros(const string& prefix, F ptr, I* instance, const vector<string>& params) {
+    ConversorRequisicaoParametros(const string& path, F ptr, I* instance, const vector<string>& params) {
         this->parameters = params;
-        this->prefix = prefix;
+        this->path = path;
         this->function = ptr;
         this->instance = instance;
     }
 
-    response converter(request &request)
+    void operator()(boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser &request)
     {
-        const string& url = request.target().to_string().substr(prefix.length());
+        const char* url = request.get().target().data();
         std::array<char*, NumberParameters> array;
-        const string& erro = parser_path_to_params<NumberParameters>((char*)url.c_str(), parameters, array);
 
-        if(erro.size())
-            return bad_request(erro);
+        if( ! parser_path_to_params<NumberParameters>((char*)url, parameters, array)){
+            boost::beast::http::request_parser<boost::beast::http::dynamic_body> req{std::move(request)};
+            // Finish reading the message
+            read(socket, buffer, req);
+            req.release();
+            return invalid_parameters(parameters);
+        }
 
         auto tuple = a2t(array);
-        const auto& tuple2 = body(request, tuple);
-        return invoker(function, instance, tuple2);
+        B body;
+        const auto& tuple2 = parserBody(body, socket, buffer, request, tuple);
+        invoker(function, instance, tuple2);
     }
 };
 
@@ -47,10 +53,10 @@ template<class B>
 struct CriadorConversorRequisicao<B&>
 {
     template<class F, class I, typename... Args>
-    shared_ptr<iConversorRequisicao> criar(const string &path, const F func, I* instancia, const Args&... args)
+    shared_ptr<parser_request_i> criar(const string &path, const F func, I* instancia, const Args&... args)
     {
-        vector<string> parametros;
-        parametros.emplace_back(args...);
+        std::initializer_list<string> inputs({args...});
+        vector<string> parametros(inputs);
         auto cvr = make_shared<ConversorRequisicaoParametros<F,I,B, sizeof...(args)>>(path, func, instancia, parametros);
         return cvr;
     }
@@ -60,11 +66,11 @@ template<>
 struct CriadorConversorRequisicao<void>
 {
     template<class F, class I, typename... Args>
-    shared_ptr<iConversorRequisicao> criar(const string &path, const F func, I* instancia, const Args&... args)
+    shared_ptr<parser_request_i> criar(const string &path, const F func, I* instancia, const Args&... args)
     {
-        vector<string> parametros;
-        parametros.emplace_back(args...);
-        auto cvr = make_shared<ConversorRequisicaoParametros<F,I,void, sizeof...(args)>>(path, func, instancia, parametros);
+        std::initializer_list<string> inputs({args...});
+        vector<string> parametros(inputs);
+        auto cvr = make_shared<ConversorRequisicaoParametros<F,I,void*, sizeof...(args)>>(path, func, instancia, parametros);
         return cvr;
     }
 };

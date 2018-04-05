@@ -1,7 +1,7 @@
 #include "httpserver/httpserver.h"
-#include "httpserver/conversorrequisicaobody.h"
 
 using namespace httpserver;
+using namespace mor;
 
 struct Carro : Entity<Carro>
 {
@@ -20,13 +20,17 @@ public:
     }
 
     response salvar(Carro& carro){}
-    response alterar(string id){}
+    response alterar(file& arquivo, char* id){
+        arquivo.write("/tmp/teste.txt");
+
+        return response{};
+    }
     response remover(string id){}
     CarroControlador(HttpServer& bs){
-        bs.route(verb::get, "/imoveis", &CarroControlador::buscar, this, {"marca", "modelo"});
+        bs.route(verb::get, "/imoveis", &CarroControlador::buscar, this, "marca", "modelo");
         bs.route<Carro&>(verb::post, "/imoveis", &CarroControlador::salvar, this);
-        bs.route(verb::put, "/imoveis", &CarroControlador::alterar, this, {"id"});
-        bs.route(verb::delete_, "/imoveis", &CarroControlador::remover, this, {"id"});
+        bs.route<file&>(verb::put, "/imoveis", &CarroControlador::alterar, this, "id");
+        bs.route(verb::delete_, "/imoveis", &CarroControlador::remover, this, "id");
     }
 };
 
@@ -34,6 +38,5 @@ int main()
 {
     httpserver::HttpServer server;
     CarroControlador carro{server};
-//    auto func = make_generic_function_ptr(&CarroControlador::buscar, carro);
     server.run();
 }

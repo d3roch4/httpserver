@@ -12,9 +12,9 @@ namespace httpserver
 using namespace std::placeholders;
 using namespace std;
 
-struct iConversorRequisicao
+struct parser_request_i
 {
-    virtual response converter(request& requisicao) = 0;
+    virtual void operator()(boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser &req) = 0;
 };
 
 

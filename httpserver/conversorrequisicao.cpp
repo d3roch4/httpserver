@@ -7,7 +7,7 @@ ConversorRequisicao::ConversorRequisicao(std::function<response(request&)> funct
     this->function = function;
 }
 
-response ConversorRequisicao::converter(request &requisicao)
+response ConversorRequisicao::operator()(request &requisicao)
 {
     return function(requisicao);
 }

@@ -2,6 +2,7 @@
 #define HTTPSERVER_H
 
 #include <iostream>
+#include "logger.h"
 #include "Roteador.h"
 #include "conversorrequisicao.h"
 #include "conversorrequisicaoparametros.h"

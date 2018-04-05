@@ -2,47 +2,43 @@
 #define RESPONSE_H
 
 #include <boost/beast.hpp>
+#include <functional>
+#include "http_session.h"
 
 namespace httpserver
 {
 typedef boost::beast::http::response<boost::beast::http::string_body> response;
 
+typedef boost::beast::http::verb verb;
+typedef boost::beast::http::status status;
+
+response& operator << (response& resp, const std::string& str);
+
+typedef std::function<void(const std::string&)> type_function_resp_default;
 
 // Returns a bad request response
-auto bad_request = [](boost::beast::string_view why)
-{
-    response res;
-    res.result(boost::beast::http::status::bad_request);
-    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-    res.set(boost::beast::http::field::content_type, "text/html");
-    res.body() = why.to_string();
-    res.prepare_payload();
-    return res;
-};
+extern type_function_resp_default bad_request;
 
 // Returns a not found response
-auto not_found = [](boost::beast::string_view target)
-{
-    response res;
-    res.result(boost::beast::http::status::not_found);
-    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-    res.set(boost::beast::http::field::content_type, "text/html");
-    res.body() = "The resource '" + target.to_string() + "' was not found.";
-    res.prepare_payload();
-    return res;
-};
-
+extern type_function_resp_default not_found;
 
 // Returns a server error response
-auto server_error = [](boost::beast::string_view what)
+extern type_function_resp_default server_error;
+
+// Return invalid parameters reponse
+extern std::function<void(const std::vector<std::string>&)> invalid_parameters;
+
+void send_file(const std::string& filename);
+
+// Return a reasonable mime type based on the extension of a file.
+boost::beast::string_view mime_type(boost::beast::string_view path);
+
+// Send function
+template <class R>
+void send(R&& response)
 {
-    response res;
-    res.result(boost::beast::http::status::internal_server_error);
-    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-    res.set(boost::beast::http::field::content_type, "text/html");
-    res.body() = "An error occurred: '" + what.to_string() + "'";
-    res.prepare_payload();
-    return res;
-};
+    map_http_session[std::this_thread::get_id()]->send(response);
+}
+
 }
 #endif // RESPONSE_H

@@ -6,21 +6,24 @@
 #include <array>
 #include <utility>
 #include "response.h"
+#include <functional>
 
 template<typename F, typename I, typename Tuple, size_t ...S >
 decltype(auto) apply_tuple_impl(F&& fn, I* instance, Tuple&& t, std::index_sequence<S...>)
-{
-  return std::bind(fn, instance, std::get<S>(std::forward<Tuple>(t))...)();
+{    
+
+//    auto greet = std::mem_fn(fn);
+//    greet(*instance, std::get<S>(t)...);
+//    return (instance->*fn)(std::get<S>(t) ...);
+//    return (instance->*fn)(std::move(std::get<S>(t))...);
+    return std::bind(fn, instance, std::get<S>(t)...)();
 }
 
 template<typename F, typename I, typename Tuple>
 decltype(auto) invoker(F&& fn, I* instance, Tuple&& t)
 {
-  std::size_t constexpr tSize
-    = std::tuple_size<typename std::remove_reference<Tuple>::type>::value;
-  return apply_tuple_impl(std::forward<F>(fn), instance,
-                          std::forward<Tuple>(t),
-                          std::make_index_sequence<tSize>());
+  std::size_t constexpr tSize = std::tuple_size<typename std::remove_reference<Tuple>::type>::value;
+  return apply_tuple_impl(std::forward<F>(fn), instance, t, std::make_index_sequence<tSize>());
 }
 
 
