@@ -13,7 +13,7 @@ void Roteador::rota(verb method, const string &path, shared_ptr<parser_request_i
     mRotas[(int)method][path] = tratador;
 }
 
-void Roteador::dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat_buffer& buffer, request_parser &req)
+void Roteador::dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat_buffer& buffer, request_parser_empty &req)
 {
     for(auto& method: mRotas){
         if(method.first == (int)req.get().method()){
@@ -24,6 +24,10 @@ void Roteador::dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::fl
             for(auto& mapPath: method.second){
                 if(path.find(mapPath.first) == 0){
                     try{
+                        const auto& filters = mapPath.second->filters;
+                        for(const auto& filter: filters)
+                            if(filter())
+                                return;
                         return (*mapPath.second)(socket, buffer, req);
                     }catch(const exception& ex){
                         return server_error(req.get().target().to_string()+": "+ex.what());

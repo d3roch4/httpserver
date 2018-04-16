@@ -28,7 +28,7 @@ public:
         this->instance = instance;
     }
 
-    void operator()(boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser &request)
+    void operator()(boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser_empty &request)
     {
         const char* url = request.get().target().data();
         std::array<char*, NumberParameters> array;

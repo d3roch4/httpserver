@@ -25,6 +25,9 @@ extern type_function_resp_default not_found;
 // Returns a server error response
 extern type_function_resp_default server_error;
 
+// Returns a redirect response
+extern type_function_resp_default redirect_to;
+
 // Return invalid parameters reponse
 extern std::function<void(const std::vector<std::string>&)> invalid_parameters;
 

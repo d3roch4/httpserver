@@ -12,9 +12,12 @@ namespace httpserver
 using namespace std::placeholders;
 using namespace std;
 
+typedef function<bool()> function_filter;
+
 struct parser_request_i
 {
-    virtual void operator()(boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser &req) = 0;
+    vector<function_filter> filters;
+    virtual void operator()(boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser_empty &req) = 0;
 };
 
 

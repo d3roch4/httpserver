@@ -12,13 +12,13 @@ http_session::http_session(tcp::socket socket, Roteador &router_)
     , timer_(socket_.get_executor().context(),
              (std::chrono::steady_clock::time_point::max)())
     , queue_(*this)
-    , router(router_)
+    , router_(router_)
 
 {
     req_.body_limit(1024 * 1024 * 10); // 10MB
 }
 
-request &http_session::request()
+request_empty &http_session::request()
 {
     return req_.get();
 }
@@ -68,7 +68,7 @@ void http_session::on_read(boost::system::error_code ec)
     {
         map_http_session[std::this_thread::get_id()] = this;
         // Send the response
-        router.dispatcher(socket_, buffer_, req_);
+        router_.dispatcher(socket_, buffer_, req_);
         //        handle_request(std::move(req_), queue_);
     }
     else
@@ -134,6 +134,12 @@ void http_session::do_close()
     socket_.shutdown(tcp::socket::shutdown_send, ec);
 
     // At this point the connection is closed gracefully
+}
+
+http_session& get_http_session()
+{
+    http_session* hs = map_http_session[std::this_thread::get_id()];
+    return *hs;
 }
 
 }

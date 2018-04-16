@@ -11,7 +11,9 @@
 #include <boost/asio/steady_timer.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/config.hpp>
+#include <boost/any.hpp>
 #include <thread>
+#include <unordered_map>
 #include "request.h"
 
 
@@ -119,13 +121,13 @@ class http_session : public std::enable_shared_from_this<http_session>
     };
 
     tcp::socket socket_;
-    boost::asio::strand<
-        boost::asio::io_context::executor_type> strand_;
+    boost::asio::strand<boost::asio::io_context::executor_type> strand_;
     boost::asio::steady_timer timer_;
     boost::beast::flat_buffer buffer_;
     http::request_parser<http::empty_body> req_;
     queue_responses queue_;
-    Roteador& router;
+    Roteador& router_;
+    std::unordered_map<std::string, boost::any> data_;
 
 public:
     // Take ownership of the socket
@@ -139,7 +141,27 @@ public:
         queue_(std::move(response));
     }
 
-    httpserver::request& request();
+    // Return the request by client
+    httpserver::request_empty& request();
+
+    // Return a object in map
+    template< class type>
+    type& data(const char* key){
+        type result;
+        auto&& itr = data_.find(key);
+        if(itr != data_.end()){
+            boost::any& a = itr->second;
+            type&& o = boost::any_cast<type>(a);
+            std::swap(o, result);
+        }
+        return result;
+    }    
+
+    // Put a object in map
+    template< class type>
+    void data(const char* key, type&& obj){
+        data_[key] = obj;
+    }
 
     // Start the asynchronous operation
     void
@@ -165,6 +187,8 @@ public:
 //------------------------------------------------------------------------------
 
 extern std::unordered_map<std::thread::id, http_session*> map_http_session;
+
+http_session& get_http_session();
 
 }
 

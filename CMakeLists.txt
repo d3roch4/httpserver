@@ -10,7 +10,7 @@ add_library(${PROJECT_NAME} ${CPP_FILES} ${HPP_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ./)
 
 set(Boost_USE_STATIC_LIBS   ON)
-find_package(Boost REQUIRED COMPONENTS log system thread regex)
+find_package(Boost COMPONENTS system thread regex)
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} pthread ssl crypto)
 
 if(NOT TARGET mor)
@@ -24,3 +24,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${JSONCPP_INCLUDE})
 if(BUILD_EXAMPLE)
   add_subdirectory(exemplo)
 endif()
+
+
+install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+install(FILES ${HPP_FILES} DESTINATION include/${PROJECT_NAME})

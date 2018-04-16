@@ -17,12 +17,22 @@ class HttpServer
     Roteador router_;
 public:
     template<class P=void, typename F, typename T, typename... Args >
-    void route(verb method, const string &path, const F func, T* instancia, const Args&... args)
+    void route(vector<function_filter>&& filters, verb method, const string &path, const F func, T* instancia, const Args&... args)
     {
-        CriadorConversorRequisicao<P> fabrica;
-        auto cvr = fabrica.criar(path, func, instancia, args...);
+        CriadorConversorRequisicao<P> criador;
+        auto cvr = criador.criar(path, func, instancia, args...);
+        cvr->filters = filters;
         router_.rota(method, path, cvr);
     }
+
+    template<class P=void, typename F, typename T, typename... Args >
+    void route(verb method, const string &path, const F func, T* instancia, const Args&... args)
+    {
+        CriadorConversorRequisicao<P> criador;
+        auto cvr = criador.criar(path, func, instancia, args...);
+        router_.rota(method, path, cvr);
+    }
+
 
     void run(const string& address = "0.0.0.0", unsigned short port = 3000, const string& public_dir = "public_dir", int thread_qtd=4 );
 };

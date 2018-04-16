@@ -39,6 +39,14 @@ type_function_resp_default server_error = [](const std::string& what)
    send(res);
 };
 
+type_function_resp_default redirect_to = [](const std::string& url)
+{
+    response res;
+    res.result(boost::beast::http::status::temporary_redirect);
+    res.set(field::location, url);
+    send(res);
+};
+
 std::function<void(const std::vector<std::string>&)> invalid_parameters = [](const std::vector<std::string>& parameters)
 {
     std::string erro = "Processing parameters: ";
@@ -62,7 +70,7 @@ void send_file(const std::string &filename)
     body.open(filename.c_str(), boost::beast::file_mode::scan, ec);
 
     http_session* hs = map_http_session[std::this_thread::get_id()];
-    request& req = hs->request();
+    request_empty& req = hs->request();
 
     // Handle the case where the file doesn't exist
     if(ec == boost::system::errc::no_such_file_or_directory)

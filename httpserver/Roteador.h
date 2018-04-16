@@ -23,7 +23,7 @@ public:
 
     void send_file(boost::beast::http::request<boost::beast::http::empty_body>& req);
 
-    void dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat_buffer& buffer, request_parser &req);
+    void dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat_buffer& buffer, request_parser_empty &req);
 
     void set_public_dir(const string& dir);
 
