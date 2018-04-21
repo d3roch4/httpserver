@@ -147,14 +147,13 @@ public:
     // Return a object in map
     template< class type>
     type& data(const char* key){
-        type result;
         auto&& itr = data_.find(key);
-        if(itr != data_.end()){
+        if(itr != data_.end())
+        {
             boost::any& a = itr->second;
-            type&& o = boost::any_cast<type>(a);
-            std::swap(o, result);
+            return boost::any_cast<type&>(a);
         }
-        return result;
+        throw std::runtime_error(std::string("http_session::data: ")+key+" not found");
     }    
 
     // Put a object in map

@@ -56,10 +56,15 @@ std::function<void(const std::vector<std::string>&)> invalid_parameters = [](con
     server_error(erro);
 };
 
-response &operator <<(response &resp, const std::string &str)
+response &operator <<(response& resp, const std::string &str)
 {
     resp.body() += str;
     return resp;
+}
+
+response &operator <<(response&& resp, const std::string &str)
+{
+    return (resp << str);
 }
 
 void send_file(const std::string &filename)
