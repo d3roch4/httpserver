@@ -22,7 +22,7 @@ namespace httpserver {
 using namespace httpserver;
 using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
 namespace http = boost::beast::http;            // from <boost/beast/http.hpp>
-class Roteador;
+class router;
 
 // Handles an HTTP server connection
 class http_session : public std::enable_shared_from_this<http_session>
@@ -124,15 +124,24 @@ class http_session : public std::enable_shared_from_this<http_session>
     boost::asio::strand<boost::asio::io_context::executor_type> strand_;
     boost::asio::steady_timer timer_;
     boost::beast::flat_buffer buffer_;
-    http::request_parser<http::empty_body> req_;
+    request_parser_empty request_parser_;
     queue_responses queue_;
-    Roteador& router_;
+    router& router_;
     std::unordered_map<std::string, boost::any> data_;
 
 public:
     // Take ownership of the socket
     explicit
-    http_session(tcp::socket socket, Roteador& router_);
+    http_session(tcp::socket socket, router& router_);
+
+    tcp::socket& socket()
+    {
+        return socket_;
+    }
+    boost::beast::flat_buffer& buffer()
+    {
+        return buffer_;
+    }
 
     // put a response in queue
     template <class R>
@@ -142,7 +151,7 @@ public:
     }
 
     // Return the request by client
-    httpserver::request_empty& request();
+    request_parser_empty &request_parser();
 
     // Return a object in map
     template< class type>

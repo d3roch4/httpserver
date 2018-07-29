@@ -4,8 +4,10 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 option(BUILD_EXAMPLE "Build example code" OFF)
 
-file(GLOB CPP_FILES httpserver/*.cpp)
-file(GLOB HPP_FILES httpserver/*.h)
+include_directories(./)
+
+file(GLOB CPP_FILES httpserver/*/*.cpp httpserver/*.cpp)
+file(GLOB HPP_FILES httpserver/*/*.h httpserver/*.h)
 add_library(${PROJECT_NAME} ${CPP_FILES} ${HPP_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ./)
 
@@ -17,6 +19,11 @@ if(NOT TARGET mor)
     add_subdirectory(../mor mor)
 endif()
 target_link_libraries(${PROJECT_NAME} mor)
+
+if(NOT TARGET d3util)
+    add_subdirectory(../d3util d3util)
+endif()
+target_link_libraries(${PROJECT_NAME} d3util)
 
 include(jsoncpp.cmake)
 target_include_directories(${PROJECT_NAME} PUBLIC ${JSONCPP_INCLUDE})

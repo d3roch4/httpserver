@@ -5,17 +5,18 @@
 #include <map>
 #include <string>
 #include <boost/asio/ip/tcp.hpp>
-#include "parser_request_i.h"
+#include "parser/parser_request_i.h"
 
 namespace httpserver {
 using namespace std;
 
-class Roteador {
+class router {
     string public_dir;
+    unordered_map<int, vector<shared_ptr<parser::parser_request_i>>> mRotas;
 public:
-    Roteador();
+    router();
 
-    void rota(verb method, const string &path, shared_ptr<parser_request_i> tratador);    
+    void add(verb method, shared_ptr<parser::parser_request_i> handle);
 
     // Append an HTTP rel-path to a local filesystem path.
     // The returned path is normalized for the platform.
@@ -26,9 +27,6 @@ public:
     void dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat_buffer& buffer, request_parser_empty &req);
 
     void set_public_dir(const string& dir);
-
-private:
-    unordered_map<int, unordered_map<string, shared_ptr<parser_request_i>>> mRotas;
 };
 
 } // namespace httpserver

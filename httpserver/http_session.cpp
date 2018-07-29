@@ -1,12 +1,12 @@
 #include "http_session.h"
 #include "logger.h"
-#include "Roteador.h"
+#include "router.h"
 
 namespace httpserver {
 
 std::unordered_map<std::thread::id, http_session*> map_http_session = {};
 
-http_session::http_session(tcp::socket socket, Roteador &router_)
+http_session::http_session(tcp::socket socket, router &router_)
     : socket_(std::move(socket))
     , strand_(socket_.get_executor())
     , timer_(socket_.get_executor().context(),
@@ -15,12 +15,12 @@ http_session::http_session(tcp::socket socket, Roteador &router_)
     , router_(router_)
 
 {
-    req_.body_limit(1024 * 1024 * 10); // 10MB
+    request_parser_.body_limit(1024 * 1024 * 10); // 10MB
 }
 
-request_empty &http_session::request()
+request_parser_empty &http_session::request_parser()
 {
-    return req_.get();
+    return request_parser_;
 }
 
 void http_session::run()
@@ -39,10 +39,10 @@ void http_session::do_read()
 
     // Make the request empty before reading,
     // otherwise the operation behavior is undefined.
-    req_.release();
+    request_parser_.release();
 
     // Read a request
-    http::async_read_header(socket_, buffer_, req_.base(),
+    http::async_read_header(socket_, buffer_, request_parser_.base(),
                             boost::asio::bind_executor(
                                 strand_,
                                 std::bind(
@@ -64,11 +64,11 @@ void http_session::on_read(boost::system::error_code ec)
     if(ec)
         return fail(ec, "read");
 
-    if(!req_.get().target().empty())
+    if(!request_parser_.get().target().empty())
     {
         map_http_session[std::this_thread::get_id()] = this;
         // Send the response
-        router_.dispatcher(socket_, buffer_, req_);
+        router_.dispatcher(socket_, buffer_, request_parser_);
         //        handle_request(std::move(req_), queue_);
     }
     else

@@ -1,39 +1,46 @@
-#include "Roteador.h"
+#include "router.h"
 #include <iostream>
 #include <boost/beast.hpp>
 #include "response.h"
+#include <d3util/stacktrace.h>
+#include <d3util/logger.h>
 
 namespace httpserver
 {
 
-Roteador::Roteador() {}
+router::router() {}
 
-void Roteador::rota(verb method, const string &path, shared_ptr<parser_request_i> tratador)
+void router::add(verb method, shared_ptr<parser::parser_request_i> tratador)
 {
-    mRotas[(int)method][path] = tratador;
+    mRotas[(int)method].push_back(tratador);
 }
 
-void Roteador::dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat_buffer& buffer, request_parser_empty &req)
+void router::dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat_buffer& buffer, request_parser_empty &req)
 {
-    for(auto& method: mRotas){
-        if(method.first == (int)req.get().method()){
+    for(auto& rota: mRotas){
+        if(rota.first == (int)req.get().method()){
             size_t end = req.get().target().find('?');
             if (end == string::npos)
                 end = req.get().target().find('#');
             const boost::string_view& path = req.get().target().substr(0, end);
-            for(auto& mapPath: method.second){
-                if(path.find(mapPath.first) == 0){
-                    try{
-                        const auto& filters = mapPath.second->filters;
+
+            LOG_DEBUG << to_string(req.get().method()) << ' ' << path;
+
+            for(shared_ptr<parser::parser_request_i> pr: rota.second){
+                try{
+                    if(pr->macth(path)){
+                        const auto& filters = pr->filters;
                         for(const auto& filter: filters)
                             if(filter())
                                 return;
-                        return (*mapPath.second)(socket, buffer, req);
-                    }catch(const exception& ex){
-                        return server_error(req.get().target().to_string()+": "+ex.what());
-                    }catch(...){
-                        return server_error(req.get().target().to_string()+": Unknow error");
+                        return (*pr)(socket, buffer, req);
                     }
+                }catch(const std::exception& ex){
+                    server_error(req.get().target().to_string()+": "+ex.what());
+                    print_stacktrace(ex);
+                    return;
+                }catch(...){
+                    return server_error(req.get().target().to_string()+": Unknow error");
                 }
             }
         }
@@ -41,7 +48,7 @@ void Roteador::dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::fl
     send_file(req.get());
 }
 
-string Roteador::path_cat(boost::beast::string_view base, boost::beast::string_view path)
+string router::path_cat(boost::beast::string_view base, boost::beast::string_view path)
 {
     if(base.empty())
         return path.to_string();
@@ -68,13 +75,13 @@ string Roteador::path_cat(boost::beast::string_view base, boost::beast::string_v
     return result;
 }
 
-void Roteador::set_public_dir(const string &dir)
+void router::set_public_dir(const string &dir)
 {
     public_dir = std::move(dir);
 }
 
 
-void Roteador::send_file(boost::beast::http::request<http::empty_body> &req)
+void router::send_file(boost::beast::http::request<http::empty_body> &req)
 {
     // Request path must be absolute and not contain "..".
     if( req.target().empty() ||

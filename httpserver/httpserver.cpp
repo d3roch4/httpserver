@@ -29,13 +29,13 @@ struct listener : public std::enable_shared_from_this<listener>
 {
     tcp::acceptor acceptor_;
     tcp::socket socket_;
-    Roteador& router_;
+    router& router_;
     bool binded=false;
 
     listener(
         boost::asio::io_context& ioc,
         tcp::endpoint endpoint,
-        Roteador& router)
+        router& router)
         : acceptor_(ioc)
         , socket_(ioc)
         , router_(router)

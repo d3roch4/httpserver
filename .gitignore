@@ -1,4 +1,5 @@
 build/
+old_code/
 
 CMakeLists.txt.user
 

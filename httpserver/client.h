@@ -1,8 +1,8 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include "response.h"
-#include "json.h"
+#include <httpserver/response.h>
+#include <httpserver/parser/json.h>
 
 namespace httpserver
 {
@@ -11,7 +11,7 @@ struct client
 {
     std::string base_url;
 
-    client();
+    client(std::string base_url);
 
     response request(verb method, const std::string& path, const JSONObject& json);
 

@@ -3,9 +3,11 @@
 
 #include <iostream>
 #include "logger.h"
-#include "Roteador.h"
-#include "conversorrequisicao.h"
-#include "conversorrequisicaoparametros.h"
+#include "router.h"
+#include <httpserver/parser/parser_request_basic.h>
+#include <httpserver/parser/json.h>
+
+using namespace std::placeholders;
 
 namespace httpserver
 {
@@ -14,23 +16,27 @@ using namespace std;
 
 class HttpServer
 {
-    Roteador router_;
+    HttpServer(HttpServer&& srv) = delete;
+    router router_;
 public:
-    template<class P=void, typename F, typename T, typename... Args >
-    void route(vector<function_filter>&& filters, verb method, const string &path, const F func, T* instancia, const Args&... args)
-    {
-        CriadorConversorRequisicao<P> criador;
-        auto cvr = criador.criar(path, func, instancia, args...);
+    HttpServer() = default;
+//    template<typename... Args >
+//    void route(vector<parser::function_filter>&& filters, verb method, const string &path, const F func, T* instancia, const Args&... args)
+//    {
+       /* parser_request_creater<P> prc;
+        auto cvr = prc.create(path, func, instancia, args...);
         cvr->filters = filters;
-        router_.rota(method, path, cvr);
-    }
+        router_.add(method, path, cvr)*/;
+//    }
 
-    template<class P=void, typename F, typename T, typename... Args >
-    void route(verb method, const string &path, const F func, T* instancia, const Args&... args)
+    template<class F, typename... Args >
+    void route(verb method, const string &path, F function, const Args&... args)
     {
-        CriadorConversorRequisicao<P> criador;
-        auto cvr = criador.criar(path, func, instancia, args...);
-        router_.rota(method, path, cvr);
+        std::initializer_list<std::string> inputs({args...});
+        std::vector<std::string> parametros(inputs);
+
+        auto prb = std::make_shared<parser::parser_request_basic<F,sizeof...(args)>>(path, function, parametros);
+        router_.add(method, prb);
     }
 
 

@@ -12,6 +12,7 @@ typedef boost::beast::http::response<boost::beast::http::string_body> response;
 typedef boost::beast::http::verb verb;
 typedef boost::beast::http::status status;
 
+response& operator << (response&& resp, const char* str);
 response& operator << (response&& resp, const std::string& str);
 response& operator << (response& resp, const std::string& str);
 

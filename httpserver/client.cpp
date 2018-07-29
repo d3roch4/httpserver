@@ -7,7 +7,7 @@
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/io_service.hpp>
-#include <boost/regex.hpp>
+#include <regex>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -21,9 +21,9 @@ using namespace httpserver;
 
 void load_root_certificates(ssl::context& ctx);
 
-client::client()
+client::client(std::string base_url)
 {
-
+    this->base_url = base_url;
 }
 
 response client::request(verb method, const string &path, const JSONObject &json)
@@ -56,8 +56,8 @@ httpserver::response httpserver::client::request_ssl(const std::string &url, con
     ssl::stream<tcp::socket> stream{ios, ctx};
 
     string port;
-    boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-    boost::cmatch what;
+    regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+    cmatch what;
     if( regex_match(url.c_str(), what, ex))
     {
         port.assign(what[3].first, what[3].second);
@@ -129,8 +129,8 @@ httpserver::response httpserver::client::request_no_ssl(const std::string &url, 
     tcp::socket socket{ios};
 
     string port;
-    boost::regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-    boost::cmatch what;
+    regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+    cmatch what;
     if( regex_match(url.c_str(), what, ex))
     {
         port.assign(what[3].first, what[3].second);
