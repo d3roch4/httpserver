@@ -8,38 +8,60 @@ void setJson(Json::Value& json, const vector<mor::DescField>& descs, const vecto
         const auto& fi = fields[i];
         const std::type_index& type = *desc.typeinfo.get();
 
-        if (type == typeid(unsigned short))
-            json[desc.name] = *(unsigned short*) fi->value;
+        if (type == typeid(unsigned short)){
+            unsigned short* n = (unsigned short*) fi->value;
+            json[desc.name] = *n;
+        }
 
-        else if(type == typeid(unsigned int) )
-            json[desc.name] = *(unsigned int*) fi->value;
+        else if(type == typeid(unsigned int) ){
+            unsigned int n = *(unsigned int*) fi->value;
+            json[desc.name] = n;
+        }
 
-        else if(type == typeid(unsigned long) )
-            json[desc.name] = (Json::UInt64) *(unsigned long*) fi->value;
+        else if(type == typeid(unsigned long) ){
+            Json::UInt64 n = (Json::UInt64) *(unsigned long*) fi->value;
+            json[desc.name] = n;
+        }
 
-        else if(type == typeid(unsigned long long) )
-            json[desc.name] = *(unsigned long long*) fi->value;
+        else if(type == typeid(unsigned long long) ){
+            unsigned long long n = *(unsigned long long*) fi->value;
+            json[desc.name] = n;
+        }
 
-        else if( type == typeid(short) )
-            json[desc.name] = *(short*) fi->value;
+        else if( type == typeid(short) ){
+            short n = *(short*) fi->value;
+            json[desc.name] = n;
+        }
 
-        else if( type == typeid(int) )
-            json[desc.name] = *(int*) fi->value;
+        else if( type == typeid(int) ){
+            int n = *(int*) fi->value;
+            json[desc.name] = n;
+        }
 
-        else if(type == typeid(long) )
-            json[desc.name] = (Json::Int64) *(long*) fi->value;
+        else if(type == typeid(long) ){
+            Json::Int64 n = (Json::Int64) *(long*) fi->value;
+            json[desc.name] = n;
+        }
 
-        else if(type == typeid(long long) )
-            json[desc.name] = *(long long*) fi->value;
+        else if(type == typeid(long long) ){
+            long long n = *(long long*) fi->value;
+            json[desc.name] = n;
+        }
 
-        else if( type == typeid(double) )
-            json[desc.name] = *(double*) fi->value;
+        else if( type == typeid(double) ){
+            double n = *(double*) fi->value;
+            json[desc.name] = n;
+        }
 
-        else if(type == typeid(float) )
-            json[desc.name] = *(float*) fi->value;
+        else if(type == typeid(float) ){
+            float n = *(float*) fi->value;
+            json[desc.name] = n;
+        }
 
-        else if( type == typeid(bool) )
-            json[desc.name] = *(bool*) fi->value;
+        else if( type == typeid(bool) ){
+            bool n = *(bool*) fi->value;
+            json[desc.name] = n;
+        }
 
         else{
             auto ref = desc.options.find("reference");
