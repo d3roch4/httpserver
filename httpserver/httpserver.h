@@ -7,11 +7,11 @@
 #include <httpserver/parser/parser_request_basic.h>
 #include <httpserver/parser/json.h>
 
-using namespace std::placeholders;
 
 namespace httpserver
 {
 
+using namespace std::placeholders;
 using namespace std;
 
 class HttpServer
