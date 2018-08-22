@@ -6,6 +6,7 @@
 #include "router.h"
 #include <httpserver/parser/parser_request_basic.h>
 #include <httpserver/parser/json.h>
+#include <httpserver/http_session.h>
 
 
 namespace httpserver
@@ -20,23 +21,22 @@ class HttpServer
     router router_;
 public:
     HttpServer() = default;
-//    template<typename... Args >
-//    void route(vector<parser::function_filter>&& filters, verb method, const string &path, const F func, T* instancia, const Args&... args)
-//    {
-       /* parser_request_creater<P> prc;
-        auto cvr = prc.create(path, func, instancia, args...);
-        cvr->filters = filters;
-        router_.add(method, path, cvr)*/;
-//    }
 
     template<class F, typename... Args >
-    void route(verb method, const string &path, F function, const Args&... args)
+    void route(vector<parser::function_filter>&& filters, verb method, const string &path, F function, const Args&... args)
     {
         std::initializer_list<std::string> inputs({args...});
         std::vector<std::string> parametros(inputs);
 
         auto prb = std::make_shared<parser::parser_request_basic<F,sizeof...(args)>>(path, function, parametros);
+        prb->filters = filters;
         router_.add(method, prb);
+    }
+
+    template<class F, typename... Args >
+    void route(verb method, const string &path, F function, const Args&... args)
+    {
+        route({}, method, path, function, args...);
     }
 
 

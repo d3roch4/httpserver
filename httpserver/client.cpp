@@ -6,7 +6,6 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/asio/ssl.hpp>
-#include <boost/asio/io_service.hpp>
 #include <regex>
 #include <cstdlib>
 #include <iostream>
@@ -18,25 +17,45 @@ namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 using namespace std;
 using namespace httpserver;
 
-
 void load_root_certificates(ssl::context& ctx);
 
 client::client(std::string base_url)
 {
     this->base_url = base_url;
+    parser.body_limit(1024 * 1024 * 96); // 96MB of limit upload file
+}
+
+void client::connect()
+{
+    regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
+    cmatch what;
+    if( regex_match(base_url.c_str(), what, ex))
+    {
+        string port{what[3].first, what[3].second};
+        if(port.empty()){
+            string protocol{what[0].first, what[0].second};
+            if(protocol == "http") port = "80";
+            else port = "443";
+        }
+        string domain{what[2].first, what[2].second};
+        // Look up the domain name
+        lookup = resolver.resolve( tcp::resolver::query(domain, port) );
+        // Make the connection on the IP address we get from a lookup
+        boost::asio::connect(socket, lookup);
+    }
 }
 
 response client::request(verb method, const string &path, const JSONObject &json)
 {
-    return request(method, base_url+path, json.toStyledString(), "application/json");
+    return request(method, path, json.toStyledString(), "application/json");
 }
 
-httpserver::response httpserver::client::request(verb method, const std::string &url, const std::string &params, const std::string &content_type, bool redirects, int timeout)
+httpserver::response httpserver::client::request(verb method, const std::string &path, const std::string &params, const std::string &content_type, bool redirects, int timeout)
 {
-    if(url.find("https") != string::npos)
-        return request_ssl(url, params, method, content_type, redirects, timeout);
-    else
-        return request_no_ssl(url, params, method, content_type, redirects, timeout);
+    if(!socket.is_open())
+        connect();
+
+    return request_no_ssl(path, params, method, content_type, redirects, timeout);
 }
 
 httpserver::response httpserver::client::request_ssl(const std::string &url, const std::string &params, boost::beast::http::verb method, const std::string &content_type, bool redirects, int timeout)
@@ -119,50 +138,17 @@ httpserver::response httpserver::client::request_ssl(const std::string &url, con
     return res;
 }
 
-httpserver::response httpserver::client::request_no_ssl(const std::string &url, const std::string &params, boost::beast::http::verb method, const std::string &content_type, bool redirects, int timeout)
+httpserver::response httpserver::client::request_no_ssl(const std::string &path, const std::string &params, boost::beast::http::verb method, const std::string &content_type, bool redirects, int timeout)
 {
-    // The io_service is required for all I/O
-    boost::asio::io_service ios;
-
-    // These objects perform our I/O
-    tcp::resolver resolver{ios};
-    tcp::socket socket{ios};
-
-    string port;
-    regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-    cmatch what;
-    if( regex_match(url.c_str(), what, ex))
-    {
-        port.assign(what[3].first, what[3].second);
-        if(port.empty()) port = "80";
-#ifdef DEBUG
-        cout << "protocol: " << string(what[1].first, what[1].second) << endl;
-        cout << "domain:   " << string(what[2].first, what[2].second) << endl;
-        cout << "port:     " << string(what[3].first, what[3].second) << endl;
-        cout << "path:     " << string(what[4].first, what[4].second) << endl;
-        cout << "query:    " << string(what[5].first, what[5].second) << endl;
-        cout << "fragment: " << string(what[6].first, what[6].second) << endl;
-#endif
-    }
-
-    // Look up the domain name
-    auto const lookup = resolver.resolve( tcp::resolver::query(string(what[2].first, what[2].second), port) );
-
-    // Make the connection on the IP address we get from a lookup
-    boost::asio::connect(socket, lookup);
-
-    // Set up an HTTP request message
-    string target = string(what[4].first, what[4].second);
-    string query = string(what[5].first, what[5].second);
+    string target = path;
     if( method == http::verb::get ){
-        query += (query.size()?"&":"") + (params.size()?params:"");
+        target += params.size()?'?'+params:"";
     }
-    target += query.size()?'?'+query:"";
 
     http::request<http::string_body> req{method, target, 10};
-    req.set(http::field::host, string(what[2].first, what[2].second));
+//    req.set(http::field::host, string(what[2].first, what[2].second));
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-    if(params.size()){
+    if(params.size() && method != http::verb::get){
         req.set(http::field::content_length, params.size());
         req.set(http::field::content_type, content_type);
         req.body() = params;
@@ -171,28 +157,13 @@ httpserver::response httpserver::client::request_no_ssl(const std::string &url, 
     // Send the HTTP request to the remote host
     http::write(socket, req);
 
-    // This buffer is used for reading and must be persisted
-    boost::beast::flat_buffer buffer;
-
-    // Declare a container to hold the response
-    http::response<http::string_body> res;
-
-    // The parser message.
-    http::parser<false, http::string_body> parser;
-    parser.body_limit(1024 * 1024 * 96); // 96MB of limit upload file
-
     // Receive the HTTP response
     boost::system::error_code ec;
     http::read(socket, buffer, parser.base(), ec);
     if(ec)
         throw boost::system::system_error{ec};
-    else
-        res = parser.release();
 
-    if(redirects && res.base().result_int() == 301)
-        return request(method, url, params, content_type, redirects, timeout);
-
-    return res;
+    return parser.release();
 }
 
 void __load_root_certificates(ssl::context& ctx, boost::system::error_code& ec)

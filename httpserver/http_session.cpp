@@ -15,7 +15,12 @@ http_session::http_session(tcp::socket socket, router &router_)
     , router_(router_)
 
 {
-    request_parser_.body_limit(1024 * 1024 * 10); // 10MB
+    request_parser_.body_limit(1024 * 1024 * 50); // 10MB
+}
+
+httpserver::http_session::~http_session()
+{
+
 }
 
 request_parser_empty &http_session::request_parser()

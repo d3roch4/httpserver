@@ -24,7 +24,7 @@ void router::dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat
                 end = req.get().target().find('#');
             const boost::string_view& path = req.get().target().substr(0, end);
 
-            LOG_DEBUG << to_string(req.get().method()) << ' ' << path;
+            //LOG_DEBUG << to_string(req.get().method()) << ' ' << path;
 
             for(shared_ptr<parser::parser_request_i> pr: rota.second){
                 try{

@@ -1,4 +1,5 @@
 #include "response.h"
+#include "http_session.h"
 
 namespace httpserver
 {
@@ -76,13 +77,13 @@ response &operator <<(response&& resp, const char* str)
 
 void send_file(const std::string &filename)
 {
+    http_session* hs = map_http_session[std::this_thread::get_id()];
+    request_empty& req = hs->request_parser().get();
+
     // Attempt to open the file
     boost::beast::error_code ec;
     boost::beast::http::file_body::value_type body;
     body.open(filename.c_str(), boost::beast::file_mode::scan, ec);
-
-    http_session* hs = map_http_session[std::this_thread::get_id()];
-    request_empty& req = hs->request_parser().get();
 
     // Handle the case where the file doesn't exist
     if(ec == boost::system::errc::no_such_file_or_directory)

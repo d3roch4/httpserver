@@ -3,7 +3,6 @@
 
 #include <boost/beast.hpp>
 #include <functional>
-#include "http_session.h"
 
 namespace httpserver
 {
@@ -37,13 +36,6 @@ void send_file(const std::string& filename);
 
 // Return a reasonable mime type based on the extension of a file.
 boost::beast::string_view mime_type(boost::beast::string_view path);
-
-// Send function
-template <class R>
-void send(R&& response)
-{
-    map_http_session[std::this_thread::get_id()]->send(response);
-}
 
 }
 #endif // RESPONSE_H

@@ -15,14 +15,13 @@
 #include <thread>
 #include <unordered_map>
 #include "request.h"
+#include "router.h"
 
 
 namespace httpserver {
 
 using namespace httpserver;
 using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
-namespace http = boost::beast::http;            // from <boost/beast/http.hpp>
-class router;
 
 // Handles an HTTP server connection
 class http_session : public std::enable_shared_from_this<http_session>
@@ -126,13 +125,14 @@ class http_session : public std::enable_shared_from_this<http_session>
     boost::beast::flat_buffer buffer_;
     request_parser_empty request_parser_;
     queue_responses queue_;
-    router& router_;
+    router router_;
     std::unordered_map<std::string, boost::any> data_;
 
 public:
     // Take ownership of the socket
     explicit
     http_session(tcp::socket socket, router& router_);
+    ~http_session();
 
     tcp::socket& socket()
     {
@@ -198,6 +198,13 @@ extern std::unordered_map<std::thread::id, http_session*> map_http_session;
 
 http_session& get_http_session();
 
+
+// Send function
+template <class R>
+void send(R&& response)
+{
+    map_http_session[std::this_thread::get_id()]->send(response);
+}
 }
 
 #endif // HTTP_SESSION_H
