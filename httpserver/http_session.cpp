@@ -40,7 +40,7 @@ void http_session::run()
 void http_session::do_read()
 {
     // Set the timer
-    timer_.expires_after(std::chrono::seconds(15));
+    timer_.expires_after(std::chrono::seconds(30));
 
     // Make the request empty before reading,
     // otherwise the operation behavior is undefined.
@@ -64,7 +64,7 @@ void http_session::on_read(boost::system::error_code ec)
 
     // This means they closed the connection
     if(ec == http::error::end_of_stream)
-        return do_close();
+        return;// do_close();
 
     if(ec)
         return fail(ec, "read");
