@@ -1,5 +1,7 @@
 #include "response.h"
 #include "http_session.h"
+#include <boost/filesystem.hpp>
+#include <iomanip>
 
 namespace httpserver
 {
@@ -75,6 +77,19 @@ response &operator <<(response&& resp, const char* str)
     return resp;
 }
 
+void setHeader(auto& res, const std::string &filename, auto const size, std::time_t lastWrite)
+{
+    std::stringstream ss;
+    ss << std::put_time(std::gmtime(&lastWrite), "%a, %d %b %Y %T GMT");
+
+    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(boost::beast::http::field::content_type, mime_type(filename));
+    res.set(boost::beast::http::field::last_modified, ss.str());
+//    res.set(boost::beast::http::field::cache_control, "public");
+    res.content_length(size);
+//    res.keep_alive(req.keep_alive());
+}
+
 void send_file(const std::string &filename)
 {
     http_session* hs = map_http_session[std::this_thread::get_id()];
@@ -95,15 +110,13 @@ void send_file(const std::string &filename)
 
     // Cache the size since we need it after the move
     auto const size = body.size();
+    std::time_t lastWrite = boost::filesystem::last_write_time(filename);
 
     // Respond to HEAD request
     if(req.method() == verb::head)
     {
         boost::beast::http::response<boost::beast::http::empty_body> res{boost::beast::http::status::ok, req.version()};
-        res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(boost::beast::http::field::content_type, mime_type(filename));
-        res.content_length(size);
-        res.keep_alive(req.keep_alive());
+        setHeader(res, filename, size, lastWrite);
         return send(std::move(res));
     }
     // Respond to GET request
@@ -111,10 +124,7 @@ void send_file(const std::string &filename)
         std::piecewise_construct,
         std::make_tuple(std::move(body)),
         std::make_tuple(boost::beast::http::status::ok, req.version())};
-    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-    res.set(boost::beast::http::field::content_type, mime_type(filename));
-    res.content_length(size);
-    res.keep_alive(req.keep_alive());
+    setHeader(res, filename, size, lastWrite);
     return send(std::move(res));
 }
 

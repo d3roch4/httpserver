@@ -21,7 +21,7 @@ public:
     dynamic_request(request_parser_empty&& request_parser);
 
     template<class TypeBody=http::string_body>
-    typename TypeBody::value_type body(){
+    typename TypeBody::value_type body() const{
         http::request_parser<TypeBody> parser_body{std::move(*request_parser_)};
         http::read(*socket_, *buffer_, parser_body); // Finish reading the message
         return parser_body.release().body();
