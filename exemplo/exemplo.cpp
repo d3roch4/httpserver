@@ -14,29 +14,21 @@ struct Carro : Entity<Carro>
 class CarroControlador
 {
 public:
-    void buscar(const char* marca, const char* modelo){
+    void buscar(string marca, string modelo){
         response resp;
-        resp.body() = string("Marca: ")+marca+" Modelo: "+modelo;
+        resp.body() = "Marca: "+marca+" Modelo: "+modelo;
         send( resp );
     }
 
-    void um2tres(string um, string dois, string tres){
+    void um2tres(string um, string dois, int tres){
         response resp;
-        resp.body() = "um: "+um+" dois: "+dois+" tres: "+tres;
+        resp.body() = "um: "+um+" dois: "+dois+" tres: "+to_string(tres);
         send( resp );
-    }
-    response alterar(httpserver::file& arquivo, char* id){
-//        arquivo.write("/tmp/teste.txt");
-
-        return response{};
     }
     response remover(string id){}
     CarroControlador(HttpServer& bs){
         bs.route(verb::get, "/carros/(.*)/(.*)", std::bind(&CarroControlador::buscar, this, _1, _2), "marca", "modelo");
-        bs.route(verb::get, "/um\\/(.*)/dois/(.*)/tres/(.*)/fim", std::bind(&CarroControlador::um2tres, this, _1, _2, _3), "marca", "modelo", "");
-//        bs.route(verb::post, "/imoveis", &CarroControlador::salvar, this);
-//        bs.route(verb::put, "/imoveis", &CarroControlador::alterar, this, "id");
-//        bs.route(verb::delete_, "/imoveis", &CarroControlador::remover, this, "id");
+        bs.route(verb::get, "/um/([0-9]+)/dois/(.*)/tres/(.*)/fim", std::bind(&CarroControlador::um2tres, this, _1, _2, _3), "marca", "modelo", "");
     }
 };
 
@@ -49,8 +41,6 @@ int main()
 {
     httpserver::HttpServer server;
     CarroControlador carro{server};
-
-//    call(std::bind(&CarroControlador::buscar, &carro, _1, _2));
 
     server.run();
 }

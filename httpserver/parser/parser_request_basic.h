@@ -3,7 +3,7 @@
 #include <httpserver/parser/parser_request_i.h>
 #include <httpserver/invoker.h>
 #include <regex>
-
+#include "parameter_parser.h"
 
 namespace httpserver {
 namespace parser {
@@ -14,27 +14,26 @@ template<class F, int NumberParameters>
 class parser_request_basic : public parser_request_i
 {
     const std::regex regex_;
-    std::cmatch what_;
+    std::smatch what_;
     F function_;
 public:
-    parser_request_basic(const string &path, F function, const vector<string>& parametros) :
+    parser_request_basic(const string &exp, F function, const vector<string>& parametros) :
         function_{ function },
-        regex_{ path }
+        regex_{ exp }
     {
     }
 
-    bool macth(const boost::string_view& path){
-        return std::regex_match(path.to_string().c_str(), what_, regex_);
+    bool macth(const std::string& path){
+        return std::regex_match(path, what_, regex_);
     }
 
     void operator()(boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser_empty &request)
     {
-//        string url{request.get().target().data(), request.get().target().size()};
-        std::array<char*, NumberParameters> array;
+        std::array<parameter_parser, NumberParameters> array;
 
-        std::vector<string> vec{what_.begin(), what_.end()};
-        for(int i=0; i<array.size(); i++){
-            array[i] = (char*) vec[i+1].c_str();
+        for(size_t i=0; i<array.size(); i++){
+            string&& str = what_[i+1].str();
+            array[i].swap(str);
         }
 
         auto tuple = a2t(array);

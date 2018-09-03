@@ -28,7 +28,7 @@ void router::dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat
 
             for(shared_ptr<parser::parser_request_i> pr: rota.second){
                 try{
-                    if(pr->macth(path)){
+                    if(pr->macth(path.to_string())){
                         const auto& filters = pr->filters;
                         for(const auto& filter: filters)
                             if(filter())

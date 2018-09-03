@@ -155,7 +155,7 @@ public:
 
     // Return a object in map
     template< class type>
-    type& data(const char* key){
+    type& get_data(const char* key){
         auto&& itr = data_.find(key);
         if(itr != data_.end())
         {
@@ -163,11 +163,23 @@ public:
             return boost::any_cast<type&>(a);
         }
         throw std::runtime_error(std::string("http_session::data: ")+key+" not found");
-    }    
+    }
+
+    // Return a object in map, return default id not fond
+    template< class type>
+    type& get_data(const char* key, const type& defaultValue){
+        auto&& itr = data_.find(key);
+        if(itr != data_.end())
+        {
+            boost::any& a = itr->second;
+            return boost::any_cast<type&>(a);
+        }
+        return const_cast<type&>(defaultValue);
+    }
 
     // Put a object in map
     template< class type>
-    void data(const char* key, type&& obj){
+    void set_data(const char* key, type&& obj){
         data_[key] = obj;
     }
 

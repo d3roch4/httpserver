@@ -22,8 +22,9 @@ struct client
 
     // This buffer is used for reading and must be persisted
     boost::beast::flat_buffer buffer;
+
     // The parser message.
-    http::parser<false, http::string_body> parser;
+//    http::parser<false, http::string_body> parser;
 
     client(std::string base_url);
 

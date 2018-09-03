@@ -17,7 +17,7 @@ typedef std::function<bool()> function_filter;
 struct parser_request_i
 {
     std::vector<function_filter> filters;
-    virtual bool macth(const boost::string_view& path) = 0;
+    virtual bool macth(const std::string& path) = 0;
     virtual void operator()(boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser_empty &req) = 0;
 };
 

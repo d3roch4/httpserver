@@ -22,7 +22,7 @@ void load_root_certificates(ssl::context& ctx);
 client::client(std::string base_url)
 {
     this->base_url = base_url;
-    parser.body_limit(1024 * 1024 * 96); // 96MB of limit upload file
+    //parser.body_limit(1024 * 1024 * 96); // 96MB of limit upload file
 }
 
 void client::connect()
@@ -52,8 +52,7 @@ response client::request(verb method, const string &path, const JSONObject &json
 
 httpserver::response httpserver::client::request(verb method, const std::string &path, const std::string &params, const std::string &content_type, bool redirects, int timeout)
 {
-    if(!socket.is_open())
-        connect();
+    connect();
 
     return request_no_ssl(path, params, method, content_type, redirects, timeout);
 }
@@ -157,13 +156,16 @@ httpserver::response httpserver::client::request_no_ssl(const std::string &path,
     // Send the HTTP request to the remote host
     http::write(socket, req);
 
+    // Declare a container to hold the response
+    http::response<http::string_body> res;
+
     // Receive the HTTP response
     boost::system::error_code ec;
-    http::read(socket, buffer, parser.base(), ec);
+    http::read(socket, buffer, res, ec);
     if(ec)
         throw boost::system::system_error{ec};
 
-    return parser.release();
+    return res;
 }
 
 void __load_root_certificates(ssl::context& ctx, boost::system::error_code& ec)
