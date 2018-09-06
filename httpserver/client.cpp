@@ -28,18 +28,18 @@ client::client(std::string base_url)
 void client::connect()
 {
     regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-    cmatch what;
-    if( regex_match(base_url.c_str(), what, ex))
+    smatch what;
+    if( regex_match(base_url, what, ex))
     {
         string port{what[3].first, what[3].second};
         if(port.empty()){
-            string protocol{what[0].first, what[0].second};
+            string protocol{what[1].first, what[1].second};
             if(protocol == "http") port = "80";
             else port = "443";
         }
-        string domain{what[2].first, what[2].second};
+        host.assign(what[2].first, what[2].second);
         // Look up the domain name
-        lookup = resolver.resolve( tcp::resolver::query(domain, port) );
+        lookup = resolver.resolve( tcp::resolver::query(host, port) );
         // Make the connection on the IP address we get from a lookup
         boost::asio::connect(socket, lookup);
     }
@@ -145,7 +145,7 @@ httpserver::response httpserver::client::request_no_ssl(const std::string &path,
     }
 
     http::request<http::string_body> req{method, target, 10};
-//    req.set(http::field::host, string(what[2].first, what[2].second));
+    req.set(http::field::host, host);
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
     if(params.size() && method != http::verb::get){
         req.set(http::field::content_length, params.size());

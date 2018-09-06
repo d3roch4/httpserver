@@ -25,7 +25,7 @@ void setJson(Json::Value& json, const vector<mor::DescField>& descs, const vecto
 
         else if(type == typeid(unsigned long long) ){
             unsigned long long n = *(unsigned long long*) fi->value;
-            json[desc.name] = n;
+            json[desc.name] = (Json::UInt64) n;
         }
 
         else if( type == typeid(short) ){
@@ -45,7 +45,7 @@ void setJson(Json::Value& json, const vector<mor::DescField>& descs, const vecto
 
         else if(type == typeid(long long) ){
             long long n = *(long long*) fi->value;
-            json[desc.name] = n;
+            json[desc.name] = (Json::Int64)n;
         }
 
         else if( type == typeid(double) ){

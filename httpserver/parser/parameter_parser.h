@@ -3,22 +3,35 @@
 #include <string>
 #include <sstream>
 
-struct parameter_parser
+struct parameter_parser : public std::string
 {
-    std::string str;
-
     parameter_parser() {}
+
+    parameter_parser(const std::string& s) :
+        std::string(s){
+    }
+
     void swap(std::string& sh){
-        str.swap(sh);
+        std::string::swap(sh);
     }
 
     operator std::string& (){
-        return str;
+        return *this;
     }
 
-    template <typename T> operator T () {
-        std::stringstream ss{str};
-        T ret;
+    operator bool (){
+        if(size()){
+            char c = at(0);
+            if(c=='s' || c=='1' || c=='y' ||c=='t')
+                return true;
+        }
+        return false;
+    }
+
+    template <typename T>
+    operator T () {
+        std::stringstream ss{*this};
+        T ret{};
         ss >> ret;
         return ret;
     }

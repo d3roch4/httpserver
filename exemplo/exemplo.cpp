@@ -14,9 +14,10 @@ struct Carro : Entity<Carro>
 class CarroControlador
 {
 public:
-    void buscar(string marca, string modelo){
+    void getCarros(string marca, string modelo){
+        int param = request().query("p");
         response resp;
-        resp.body() = "Marca: "+marca+" Modelo: "+modelo;
+        resp.body() = "Marca: "+marca+" Modelo: "+modelo+", Param: "+to_string(param);
         send( resp );
     }
 
@@ -27,7 +28,7 @@ public:
     }
     response remover(string id){}
     CarroControlador(HttpServer& bs){
-        bs.route(verb::get, "/carros/(.*)/(.*)", std::bind(&CarroControlador::buscar, this, _1, _2), "marca", "modelo");
+        bs.route(verb::get, "/carros/(.+)/(.+)", std::bind(&CarroControlador::getCarros, this, _1, _2), "marca", "modelo");
         bs.route(verb::get, "/um/([0-9]+)/dois/(.*)/tres/(.*)/fim", std::bind(&CarroControlador::um2tres, this, _1, _2, _3), "marca", "modelo", "");
     }
 };
@@ -41,6 +42,8 @@ int main()
 {
     httpserver::HttpServer server;
     CarroControlador carro{server};
+
+    cout << "Acesse: http://localhost:3000" << endl;
 
     server.run();
 }

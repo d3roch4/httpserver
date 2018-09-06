@@ -102,8 +102,8 @@ namespace httpserver {
     }
 
     inline JSONObject& operator<<(JSONObject& json, response& resp) {
-        Json::Reader parser;
-        parser.parse(resp.body(), json);
+        const string& str = resp.body();
+        to_json(str, json);
         return json;
     }
 

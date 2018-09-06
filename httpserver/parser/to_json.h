@@ -15,10 +15,23 @@ namespace httpserver {
 
 using namespace mor;
 
-inline void to_json(const std::string str, Json::Value& json)
+inline void to_json(const std::string& strJson, Json::Value& json)
 {
-    Json::Reader read;
-    read.parse(str, json);
+    Json::CharReaderBuilder builder;
+    std::unique_ptr<Json::CharReader> reader{builder.newCharReader()};
+
+    std::string errors;
+
+    bool parsingSuccessful = reader->parse(
+        strJson.c_str(),
+        strJson.c_str() + strJson.size(),
+        &json,
+        &errors
+    );
+
+    if (!parsingSuccessful) {
+        throw_with_trace(runtime_error("Failed to parse the JSON, errors:"));
+    }
 }
 
 inline Json::Value to_json(const std::string str)

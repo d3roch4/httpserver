@@ -3,7 +3,7 @@ if(NOT TARGET libjsoncpp)
     include(ExternalProject)
     ExternalProject_Add (
         jsoncpp
-        URL  "https://github.com/open-source-parsers/jsoncpp/archive/1.7.2.zip"
+        URL  "https://github.com/open-source-parsers/jsoncpp/archive/1.8.4.zip"
         INSTALL_COMMAND ""
         CMAKE_ARGS 
             "-G${CMAKE_GENERATOR}"

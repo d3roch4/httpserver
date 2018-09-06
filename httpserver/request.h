@@ -2,6 +2,8 @@
 #define REQUEST_H
 
 #include <boost/beast.hpp>
+#include <unordered_map>
+#include <httpserver/parser/parameter_parser.h>
 
 namespace httpserver
 {
@@ -17,6 +19,9 @@ class dynamic_request : public request_empty
     request_parser_empty* request_parser_;
     boost::asio::ip::tcp::socket* socket_;
     flat_buffer* buffer_;
+    std::unordered_map<std::string, parameter_parser> query_;
+
+    void parse_query();
 public:
     dynamic_request(request_parser_empty&& request_parser);
 
@@ -29,6 +34,8 @@ public:
 
     void socket(boost::asio::ip::tcp::socket &skt);
     void buffer(flat_buffer &bff);
+    parameter_parser query(const std::string& key);
+    std::unordered_map<std::string, parameter_parser> query();
 };
 
 dynamic_request request();

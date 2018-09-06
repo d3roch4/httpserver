@@ -13,6 +13,7 @@ struct client
     using tcp = boost::asio::ip::tcp;
 
     std::string base_url;
+    std::string host;
     // The io_service is required for all I/O
     boost::asio::io_service ios;
     // These objects perform our I/O
