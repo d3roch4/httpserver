@@ -13,9 +13,12 @@ http_session::http_session(tcp::socket socket, router &router_)
              (std::chrono::steady_clock::time_point::max)())
     , queue_(*this)
     , router_(router_)
-
+    , dynamic_request_(&request_parser_)
 {
     request_parser_.body_limit(1024 * 1024 * 50); // 10MB
+
+    dynamic_request_.socket(socket_);
+    dynamic_request_.buffer(buffer_);
 }
 
 httpserver::http_session::~http_session()
@@ -26,6 +29,16 @@ httpserver::http_session::~http_session()
 request_parser_empty &http_session::request_parser()
 {
     return request_parser_;
+}
+
+dynamic_request http_session::request()
+{
+    dynamic_request r{&request_parser_};
+    r.buffer(this->buffer_);
+    r.socket(this->socket_);
+    string auth = r[http::field::authorization].to_string();
+
+    return r;
 }
 
 void http_session::run()

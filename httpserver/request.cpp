@@ -20,9 +20,9 @@ void dynamic_request::parse_query()
     }
 }
 
-dynamic_request::dynamic_request(request_parser_empty &&req_empty) :
-    request_empty(req_empty.get()) {
-    this->request_parser_ = & req_empty;
+dynamic_request::dynamic_request(request_parser_empty* req_empty) :
+    request_empty(req_empty->get()) {
+    this->request_parser_ = req_empty;
 }
 
 
@@ -53,10 +53,7 @@ std::unordered_map<string, parameter_parser> dynamic_request::query()
 
 dynamic_request request(){
     http_session& ss = get_http_session();
-    dynamic_request r{std::move(ss.request_parser())};
-    r.socket(ss.socket());
-    r.buffer(ss.buffer());
-    return r;
+    return ss.request();
 }
 
 

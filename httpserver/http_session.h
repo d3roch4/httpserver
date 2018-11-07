@@ -127,6 +127,7 @@ class http_session : public std::enable_shared_from_this<http_session>
     queue_responses queue_;
     router router_;
     std::unordered_map<std::string, boost::any> data_;
+    dynamic_request dynamic_request_;
 
 public:
     // Take ownership of the socket
@@ -152,6 +153,8 @@ public:
 
     // Return the request by client
     request_parser_empty &request_parser();
+
+    dynamic_request request();
 
     // Return a object in map
     template< class type>

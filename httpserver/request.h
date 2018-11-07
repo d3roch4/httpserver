@@ -23,7 +23,7 @@ class dynamic_request : public request_empty
 
     void parse_query();
 public:
-    dynamic_request(request_parser_empty&& request_parser);
+    dynamic_request(request_parser_empty* request_parser);
 
     template<class TypeBody=http::string_body>
     typename TypeBody::value_type body() const{
