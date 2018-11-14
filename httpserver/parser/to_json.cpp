@@ -69,7 +69,11 @@ void setJson(Json::Value& json, const vector<mor::DescField>& descs, const vecto
                 Json::Value obj;
                 iEntity* ptr = (iEntity*) fi->value;
                 setJson(obj, ptr->_get_desc_fields(), ptr->_get_fields());
-                json[ref->second] = obj;
+                auto jsonName = desc.options.find("namejson");
+                if(jsonName != desc.options.end())
+                    json[jsonName->second] = obj;
+                else
+                    json[ref->second] = obj;
             }
             else
                 json[desc.name] = fi->getValue(desc);
