@@ -10,6 +10,19 @@ namespace httpserver
 
 router::router() {}
 
+router::router(const router &other)
+{
+    this->public_dir = other.public_dir;
+    this->mRotas = other.mRotas;
+
+    for(auto& pair: this->mRotas){
+        for(auto&& p: pair.second){
+            auto copy = p->copy();
+            p.swap(copy);
+        }
+    }
+}
+
 void router::add(verb method, shared_ptr<parser::parser_request_i> tratador)
 {
     mRotas[(int)method].push_back(tratador);
@@ -28,7 +41,8 @@ void router::dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat
 
             for(shared_ptr<parser::parser_request_i> pr: rota.second){
                 try{
-                    if(pr->macth(path.to_string())){
+                    const string& str = path.to_string();
+                    if(pr->macth(str)){
                         const auto& filters = pr->filters;
                         for(const auto& filter: filters)
                             if(filter())

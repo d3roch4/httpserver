@@ -15,6 +15,7 @@ class router {
     unordered_map<int, vector<shared_ptr<parser::parser_request_i>>> mRotas;
 public:
     router();
+    router(const router& other);
 
     void add(verb method, shared_ptr<parser::parser_request_i> handle);
 

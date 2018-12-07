@@ -103,6 +103,8 @@ struct listener : public std::enable_shared_from_this<listener>
         if(ec)
         {
             fail(ec, "accept");
+            if(ec == boost::system::errc::too_many_files_open)
+                acceptor_.get_io_context().stop();
         }
         else
         {
