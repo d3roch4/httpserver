@@ -13,7 +13,6 @@
 
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 namespace http = boost::beast::http;    // from <boost/beast/http.
-namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 using namespace std;
 using namespace httpserver;
 
@@ -25,6 +24,9 @@ client::client(std::string base_url)
     //parser.body_limit(1024 * 1024 * 96); // 96MB of limit upload file
 }
 
+client::client()
+{ }
+
 void client::connect()
 {
     regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
@@ -32,16 +34,40 @@ void client::connect()
     if( regex_match(base_url, what, ex))
     {
         string port{what[3].first, what[3].second};
-        if(port.empty()){
-            string protocol{what[1].first, what[1].second};
-            if(protocol == "http") port = "80";
-            else port = "443";
+        string protocol{what[1].first, what[1].second};
+        if(protocol == "https"){
+            useSSL = true;
+            if(port.empty())
+                port = "443";
         }
+        else{
+            useSSL = false;
+            if(port.empty())
+                port = "80";
+        }
+
         host.assign(what[2].first, what[2].second);
-        // Look up the domain name
         lookup = resolver.resolve( tcp::resolver::query(host, port) );
-        // Make the connection on the IP address we get from a lookup
-        boost::asio::connect(socket, lookup);
+
+        if(!useSSL){
+            // Look up the domain name
+            // Make the connection on the IP address we get from a lookup
+            boost::asio::connect(socket, lookup);
+        }else{            
+            // This holds the root certificate used for verification
+            load_root_certificates(ctx);
+            // Set SNI Hostname (many hosts need this to handshake successfully)
+            if(! SSL_set_tlsext_host_name(stream.native_handle(), host.c_str()))
+            {
+                boost::system::error_code ec{static_cast<int>(::ERR_get_error()), boost::asio::error::get_ssl_category()};
+                throw_with_trace( boost::system::system_error{ec} );
+            }
+            // Look up the domain name
+            // Make the connection on the IP address we get from a lookup
+            boost::asio::connect(stream.next_layer(), lookup.begin(), lookup.end());
+            // Perform the SSL handshake
+            stream.handshake(ssl::stream_base::client);
+        }
     }
 }
 
@@ -52,99 +78,12 @@ response client::request(verb method, const string &path, const JSONObject &json
 
 httpserver::response httpserver::client::request(verb method, const std::string &path, const std::string &params, const std::string &content_type, bool redirects, int timeout)
 {
-    connect();
-
-    return request_no_ssl(path, params, method, content_type, redirects, timeout);
-}
-
-httpserver::response httpserver::client::request_ssl(const std::string &url, const std::string &params, boost::beast::http::verb method, const std::string &content_type, bool redirects, int timeout)
-{
-
-    // The io_service is required for all I/O
-    boost::asio::io_service ios;
-
-    // The SSL context is required, and holds certificates
-    ssl::context ctx{ssl::context::sslv23_client};
-
-    // This holds the root certificate used for verification
-    load_root_certificates(ctx);
-
-    // These objects perform our I/O
-    tcp::resolver resolver{ios};
-    ssl::stream<tcp::socket> stream{ios, ctx};
-
-    string port;
-    regex ex("(http|https)://([^/ :]+):?([^/ ]*)(/?[^ #?]*)\\x3f?([^ #]*)#?([^ ]*)");
-    cmatch what;
-    if( regex_match(url.c_str(), what, ex))
-    {
-        port.assign(what[3].first, what[3].second);
-        if(port.empty()) port = "443";
-#ifdef DEBUG
-        cout << "protocol: " << string(what[1].first, what[1].second) << endl;
-        cout << "domain:   " << string(what[2].first, what[2].second) << endl;
-        cout << "port:     " << string(what[3].first, what[3].second) << endl;
-        cout << "path:     " << string(what[4].first, what[4].second) << endl;
-        cout << "query:    " << string(what[5].first, what[5].second) << endl;
-        cout << "fragment: " << string(what[6].first, what[6].second) << endl;
-#endif
-    }
-
-    // Look up the domain name
-    auto const lookup = resolver.resolve( tcp::resolver::query(string(what[2].first, what[2].second), port) );
-
-    // Make the connection on the IP address we get from a lookup
-    boost::asio::connect(stream.next_layer(), lookup);
-
-    // Perform the SSL handshake
-    stream.handshake(ssl::stream_base::client);
-
-    // Set up an HTTP request message
-    string target = string(what[4].first, what[4].second);
-    string query = string(what[5].first, what[5].second);
-    if( method == http::verb::get ){
-        query += (query.size()?"&":"") + (params.size()?params:"");
-    }
-    target += query.size()?'?'+query:"";
-
-    http::request<http::string_body> req{method, target, 11};
-    req.set(http::field::host, string(what[2].first, what[2].second));
-    req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-    if(params.size()){
-        req.set(http::field::content_length, params.size());
-        req.set(http::field::content_type, content_type);
-        req.body() = params;
-    }
-
-    // Send the HTTP request to the remote host
-    http::write(stream, req);
-
-    // This buffer is used for reading and must be persisted
-    boost::beast::flat_buffer buffer;
-
-    // Declare a container to hold the response
-    http::response<http::string_body> res;
-
-    // Receive the HTTP response
-    boost::system::error_code ec;
-    http::read(stream, buffer, res, ec);
-    if(ec)
-        throw boost::system::system_error{ec};
-
-    if(redirects && res.base().result_int() == 301)
-        return request(method, url, params, content_type, redirects, timeout);
-
-    return res;
-}
-
-httpserver::response httpserver::client::request_no_ssl(const std::string &path, const std::string &params, boost::beast::http::verb method, const std::string &content_type, bool redirects, int timeout)
-{
     string target = path;
     if( method == http::verb::get ){
         target += params.size()?'?'+params:"";
     }
 
-    http::request<http::string_body> req{method, target, 10};
+    http::request<http::string_body> req{method, target, 11};
     req.set(http::field::host, host);
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
     if(params.size() && method != http::verb::get){
@@ -153,15 +92,32 @@ httpserver::response httpserver::client::request_no_ssl(const std::string &path,
         req.body() = params;
     }
 
+    return request(req);
+}
+
+response client::request(http::request<http::string_body> &req)
+{
+    req.set(http::field::host, host);
+    req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+    connect();
+
     // Send the HTTP request to the remote host
-    http::write(socket, req);
+    if(useSSL)
+        http::write(stream, req);
+    else
+        http::write(socket, req);
 
     // Declare a container to hold the response
     http::response<http::string_body> res;
 
     // Receive the HTTP response
     boost::system::error_code ec;
-    http::read(socket, buffer, res, ec);
+    if(useSSL)
+        http::read(stream, buffer, res, ec);
+    else
+        http::read(socket, buffer, res, ec);
+
     if(ec)
         throw boost::system::system_error{ec};
 

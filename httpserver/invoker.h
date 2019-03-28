@@ -6,7 +6,6 @@
 #include <array>
 #include <utility>
 #include <functional>
-#include "response.h"
 
 template<typename F, typename Tuple, size_t ...S >
 decltype(auto) apply_tuple_impl(F&& fn, Tuple&& t, std::index_sequence<S...>)

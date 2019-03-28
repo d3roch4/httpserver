@@ -1,33 +1,32 @@
-#ifndef PARSER_REQUEST_BASIC_H
-#define PARSER_REQUEST_BASIC_H
-#include <httpserver/parser/parser_request_i.h>
+#ifndef WRAP_HANDLE_REQUEST_BASIC_H
+#define WRAP_HANDLE_REQUEST_BASIC_H
+#include <httpserver/wrap_handle_request_i.h>
 #include <httpserver/invoker.h>
+#include <httpserver/parameter_parser.h>
 #include <regex>
-#include "parameter_parser.h"
 
 namespace httpserver {
-namespace parser {
 
 using namespace std;
 
 template<class F, int NumberParameters>
-class parser_request_basic : public parser_request_i
+class wrap_handle_request_basic : public wrap_handle_request_i
 {
     const std::regex regex_;
     std::smatch what_;
     F function_;
 public:
-    parser_request_basic(const string &exp, F function, const vector<string>& parametros) :
+    wrap_handle_request_basic(const string &exp, F function) :
         function_{ function },
         regex_{ exp }
     {
     }
 
     bool macth(const std::string& path){
-        return std::regex_match(path, what_, regex_);
+        return std::regex_search(path, what_, regex_);
     }
 
-    void operator()(boost::asio::ip::tcp::socket &socket, boost::beast::flat_buffer &buffer, request_parser_empty &request)
+    void operator()()
     {
         std::array<parameter_parser, NumberParameters> array;
 
@@ -41,6 +40,5 @@ public:
     }
 };
 
-}
 }
 #endif // PARSER_REQUEST_BASIC_H

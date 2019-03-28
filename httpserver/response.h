@@ -3,12 +3,9 @@
 
 #include <boost/beast.hpp>
 #include <functional>
-
 namespace httpserver
 {
 typedef boost::beast::http::response<boost::beast::http::string_body> response;
-
-typedef boost::beast::http::verb verb;
 typedef boost::beast::http::status status;
 
 response& operator << (response&& resp, const char* str);
@@ -16,6 +13,16 @@ response& operator << (response&& resp, const std::string& str);
 response& operator << (response& resp, const std::string& str);
 
 typedef std::function<void(const std::string&)> type_function_resp_default;
+
+void ok(const std::string& content);
+
+void ok(const std::string& content, const std::string& type, bool compress);
+
+extern type_function_resp_default created;
+
+extern type_function_resp_default accepted;
+
+extern type_function_resp_default forbidden;
 
 // Returns a bad request response
 extern type_function_resp_default bad_request;

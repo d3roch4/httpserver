@@ -3,6 +3,8 @@
 #include <string>
 #include <sstream>
 
+namespace httpserver {
+
 struct parameter_parser : public std::string
 {
     parameter_parser() {}
@@ -37,4 +39,6 @@ struct parameter_parser : public std::string
     }
 };
 
+
+}
 #endif // PARAMETER_PARSER_H

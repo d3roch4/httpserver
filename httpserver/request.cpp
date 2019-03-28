@@ -1,8 +1,26 @@
 #include "request.h"
-#include "http_session.h"
 #include <regex>
+#include "http_session_i.h"
+#include "d3util/stacktrace.h"
 
 namespace httpserver {
+
+std::string urlDecode(std::string &eString) {
+    std::string ret;
+    char ch;
+    int i, j;
+    for (i=0; i<eString.length(); i++) {
+        if (int(eString[i])==37) {
+            sscanf(eString.substr(i+1,2).c_str(), "%x", &j);
+            ch=static_cast<char>(j);
+            ret+=ch;
+            i=i+2;
+        } else {
+            ret+=eString[i];
+        }
+    }
+    return (ret);
+}
 
 void dynamic_request::parse_query()
 {
@@ -16,26 +34,18 @@ void dynamic_request::parse_query()
     {
         std::string key = (*i)[1].str();
         std::string value = (*i)[2].str();
-        query_[key] = value;
+        query_[key] = urlDecode( value );
     }
 }
 
-dynamic_request::dynamic_request(request_parser_empty* req_empty) :
-    request_empty(req_empty->get()) {
-    this->request_parser_ = req_empty;
+dynamic_request::dynamic_request(request_parser_empty& req_empty, http_session_i* session) :
+    request_empty(req_empty.get()), // construtor base
+    request_parser_(req_empty),
+    session_(session) {
 }
 
 
-
-void dynamic_request::socket(boost::asio::ip::tcp::socket &skt){
-    this->socket_ = &skt;
-}
-
-void dynamic_request::buffer(flat_buffer &bff){
-    this->buffer_ = &bff;
-}
-
-parameter_parser dynamic_request::query(const string &key)
+parameter_parser dynamic_request::query(const std::string &key)
 {
     if(query_.empty())
         parse_query();
@@ -46,14 +56,17 @@ parameter_parser dynamic_request::query(const string &key)
     return {};
 }
 
-std::unordered_map<string, parameter_parser> dynamic_request::query()
+std::unordered_map<std::string, parameter_parser> dynamic_request::query()
 {
     return query_;
 }
 
-dynamic_request request(){
-    http_session& ss = get_http_session();
-    return ss.request();
+dynamic_request& request(){
+    http_session_i* ss = get_http_session();
+    if(ss)
+        return ss->request();
+    else
+        throw_with_trace(runtime_error("not possible get request of http session"));
 }
 
 
