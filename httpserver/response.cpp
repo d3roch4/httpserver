@@ -64,7 +64,7 @@ type_function_resp_default accepted = [](const std::string& content)
 type_function_resp_default forbidden = [](const std::string& why)
 {
     response res;
-    res.result(boost::beast::http::status::bad_request);
+    res.result(boost::beast::http::status::forbidden);
     res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
     res.set(boost::beast::http::field::content_type, "text/html");
     res.body() = why;
