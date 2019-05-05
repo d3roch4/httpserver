@@ -1,10 +1,77 @@
 #include "response.h"
-#include "http_session.h"
+#include "request.h"
 #include <boost/filesystem.hpp>
 #include <iomanip>
+#include "compress.h"
 
 namespace httpserver
 {
+using field = boost::beast::http::field;
+
+httpserver::response getCompressResponse(const string& str)
+{
+    using namespace httpserver;
+    const auto& req = httpserver::request();
+    httpserver::response resp;
+    boost::string_view encoding = req[field::accept_encoding];
+
+    if(encoding.find("gzip") != boost::string_view::npos && str.size()>1450){
+        resp.body() = compress_gzip(str);
+        resp.set(field::content_encoding, "gzip");
+    }else if(encoding.find("deflate") != boost::string_view::npos && str.size()>1450){
+        resp.body() = compress_deflate(str);
+        resp.set(field::content_encoding, "deflate");
+    }else
+        resp.body() = str;
+
+    return resp;
+}
+
+void compress_and_send(const string &str)
+{
+    httpserver::response resp = getCompressResponse(str);
+    send(resp);
+}
+
+void ok(const std::string& content)
+{
+    compress_and_send(content);
+}
+
+void ok(const string &content, const string &type, bool compress)
+{
+    response res = getCompressResponse(content);
+    res.set(boost::beast::http::field::content_type, type);
+    send(res);
+}
+
+type_function_resp_default created = [](const std::string& local)
+{
+    response resp;
+    resp.result(status::created);
+    resp.set("Local", local );
+    send(resp);
+};
+
+type_function_resp_default accepted = [](const std::string& content)
+{
+    response resp;
+    resp.result(status::accepted);
+    resp.body() = content;
+    send(resp);
+};
+
+type_function_resp_default forbidden = [](const std::string& why)
+{
+    response res;
+    res.result(boost::beast::http::status::forbidden);
+    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(boost::beast::http::field::content_type, "text/html");
+    res.body() = why;
+    res.keep_alive(false);
+    res.prepare_payload();
+    send(res);
+};
 
 type_function_resp_default bad_request = [](const std::string& why)
 {
@@ -77,7 +144,8 @@ response &operator <<(response&& resp, const char* str)
     return resp;
 }
 
-void setHeader(auto& res, const std::string &filename, auto const size, std::time_t lastWrite)
+template<class R>
+void setHeader(R& res, const std::string &filename, const size_t size, std::time_t lastWrite)
 {
     std::stringstream ss;
     ss << std::put_time(std::gmtime(&lastWrite), "%a, %d %b %Y %T GMT");
@@ -92,8 +160,8 @@ void setHeader(auto& res, const std::string &filename, auto const size, std::tim
 
 void send_file(const std::string &filename)
 {
-    http_session* hs = map_http_session[std::this_thread::get_id()];
-    request_empty& req = hs->request_parser().get();
+    http_session_i* hs = get_http_session();
+    const auto& req = hs->request();
 
     // Attempt to open the file
     boost::beast::error_code ec;
@@ -102,7 +170,7 @@ void send_file(const std::string &filename)
 
     // Handle the case where the file doesn't exist
     if(ec == boost::system::errc::no_such_file_or_directory)
-        return not_found(req.target().to_string());
+        return not_found(to_string(req.method()).to_string()+':'+req.target().to_string());
 
     // Handle an unknown error
     if(ec)

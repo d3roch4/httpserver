@@ -1,42 +1,27 @@
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/bind_executor.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/signal_set.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/asio/steady_timer.hpp>
-#include <boost/make_unique.hpp>
-#include <boost/config.hpp>
-#include <algorithm>
-#include <cstdlib>
-#include <functional>
-#include <memory>
-#include <string>
-#include <thread>
-#include <vector>
-
+#include "session.h"
+#include "request.h"
 #include "httpserver.h"
-#include "http_session.h"
+#include "server_certificate.hpp"
 
-using namespace httpserver;
-using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
-namespace http = boost::beast::http;            // from <boost/beast/http.hpp>
+namespace httpserver {
 
 
 // Accepts incoming connections and launches the sessions
-struct listener : public std::enable_shared_from_this<listener>
+class listener : public std::enable_shared_from_this<listener>
 {
+    ssl::context& ctx_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     router& router_;
-    bool binded=false;
 
+public:
     listener(
         boost::asio::io_context& ioc,
+        ssl::context& ctx,
         tcp::endpoint endpoint,
         router& router)
-        : acceptor_(ioc)
+        : ctx_(ctx)
+        , acceptor_(ioc)
         , socket_(ioc)
         , router_(router)
     {
@@ -51,7 +36,7 @@ struct listener : public std::enable_shared_from_this<listener>
         }
 
         // Allow address reuse
-        acceptor_.set_option(boost::asio::socket_base::reuse_address(true));
+        acceptor_.set_option(boost::asio::socket_base::reuse_address(true), ec);
         if(ec)
         {
             fail(ec, "set_option");
@@ -63,9 +48,8 @@ struct listener : public std::enable_shared_from_this<listener>
         if(ec)
         {
             fail(ec, "bind");
-            return;
+            exit(EXIT_FAILURE);
         }
-        binded=true;
 
         // Start listening for connections
         acceptor_.listen(
@@ -108,17 +92,17 @@ struct listener : public std::enable_shared_from_this<listener>
         }
         else
         {
-            // Create the http_session and run it
-            std::make_shared<http_session>(std::move(socket_), router_)->run();
+            // Create the detector http_session and run it
+            std::make_shared<detect_session>(
+                std::move(socket_),
+                ctx_,
+                router_)->run();
         }
 
         // Accept another connection
         do_accept();
     }
 };
-
-//------------------------------------------------------------------------------
-
 
 void HttpServer::run(const string &address, unsigned short port, const string &doc_root, int thread_qtd)
 {
@@ -127,33 +111,39 @@ void HttpServer::run(const string &address, unsigned short port, const string &d
     auto const threads = std::max<int>(1, thread_qtd);
 
     // The io_context is required for all I/O
-    boost::asio::io_context ioc{thread_qtd};
+    boost::asio::io_context ioc{threads};
+
+    // The SSL context is required, and holds certificates
+    ssl::context ctx{ssl::context::sslv23};
+
+    // This holds the self-signed certificate used by the server
+    load_server_certificate(ctx);
 
     // Create and launch a listening port
-    auto listn = std::make_shared<listener>(ioc, tcp::endpoint{address_, port}, router_);
-    if(! listn->binded ){
-        logger("HttpServer::run: not possible open port");
-        return;
-    }
-    listn->run();
+    std::make_shared<listener>(
+        ioc,
+        ctx,
+        tcp::endpoint{address_, port},
+        router_)->run();
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     boost::asio::signal_set signals(ioc, SIGINT, SIGTERM);
-    signals.async_wait([&](boost::system::error_code const&, int)
-    {
-        // Stop the `io_context`. This will cause `run()`
-        // to return immediately, eventually destroying the
-        // `io_context` and all of the sockets in it.
-
-        logger("HttpServer::run: shutdown");
-        ioc.stop();
-    });
+    signals.async_wait(
+        [&](boost::system::error_code const&, int)
+        {
+            // Stop the `io_context`. This will cause `run()`
+            // to return immediately, eventually destroying the
+            // `io_context` and all of the sockets in it.
+            ioc.stop();
+        });
 
     // Run the I/O service on the requested number of threads
     std::vector<std::thread> v;
     v.reserve(threads - 1);
     for(auto i = threads - 1; i > 0; --i)
-        v.emplace_back([&ioc]{
+        v.emplace_back(
+        [&ioc]
+        {
             ioc.run();
         });
     ioc.run();
@@ -163,4 +153,7 @@ void HttpServer::run(const string &address, unsigned short port, const string &d
     // Block until all the threads exit
     for(auto& t : v)
         t.join();
+}
+
+
 }

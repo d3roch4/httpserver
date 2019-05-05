@@ -1,13 +1,11 @@
 #ifndef HTTPSERVER_H
 #define HTTPSERVER_H
-
 #include <iostream>
-#include "logger.h"
 #include "router.h"
-#include <httpserver/parser/parser_request_basic.h>
-#include <httpserver/parser/json.h>
-#include <httpserver/http_session.h>
-
+#include "wrap_handle_request_basic.h"
+#include "request.h"
+#include "response.h"
+#include <initializer_list>
 
 namespace httpserver
 {
@@ -23,12 +21,9 @@ public:
     HttpServer() = default;
 
     template<class F, typename... Args >
-    void route(vector<parser::function_filter>&& filters, verb method, const string &path, F function, const Args&... args)
+    void route(vector<function_filter>&& filters, verb method, const string &path, F function, const Args&... args)
     {
-        std::initializer_list<std::string> inputs({args...});
-        std::vector<std::string> parametros(inputs);
-
-        auto prb = std::make_shared<parser::parser_request_basic<F,sizeof...(args)>>(path, function, parametros);
+        auto prb = std::make_shared<wrap_handle_request_basic<F,sizeof...(args)>>(path, function);
         prb->filters = filters;
         router_.add(method, prb);
     }

@@ -1,15 +1,21 @@
 #include "router.h"
 #include <iostream>
 #include <boost/beast.hpp>
-#include "response.h"
 #include <d3util/stacktrace.h>
 #include <d3util/logger.h>
+#include "response.h"
 
 namespace httpserver
 {
+using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
+namespace http = boost::beast::http;            // from <boost/beast/http.hpp>
+
 
 router::router() {}
 
+<<<<<<< HEAD
+void router::add(verb method, shared_ptr<wrap_handle_request_i> tratador)
+=======
 router::router(const router &other)
 {
     this->public_dir = other.public_dir;
@@ -24,11 +30,12 @@ router::router(const router &other)
 }
 
 void router::add(verb method, shared_ptr<parser::parser_request_i> tratador)
+>>>>>>> master
 {
     mRotas[(int)method].push_back(tratador);
 }
 
-void router::dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat_buffer& buffer, request_parser_empty &req)
+void router::dispatcher(request_parser_empty &req)
 {
     for(auto& rota: mRotas){
         if(rota.first == (int)req.get().method()){
@@ -39,15 +46,19 @@ void router::dispatcher(boost::asio::ip::tcp::socket& socket, boost::beast::flat
 
             //LOG_DEBUG << to_string(req.get().method()) << ' ' << path;
 
-            for(shared_ptr<parser::parser_request_i> pr: rota.second){
+            for(shared_ptr<wrap_handle_request_i> pr: rota.second){
                 try{
+<<<<<<< HEAD
+                    const std::string& str = path.to_string();
+=======
                     const string& str = path.to_string();
+>>>>>>> master
                     if(pr->macth(str)){
                         const auto& filters = pr->filters;
                         for(const auto& filter: filters)
                             if(filter())
                                 return;
-                        return (*pr)(socket, buffer, req);
+                        return (*pr)();
                     }
                 }catch(const std::exception& ex){
                     server_error(req.get().target().to_string()+": "+ex.what());

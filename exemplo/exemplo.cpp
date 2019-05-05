@@ -1,10 +1,8 @@
 #include <httpserver/httpserver.h>
-#include <mor/entity.h>
 
 using namespace httpserver;
-using namespace mor;
 
-struct Carro : Entity<Carro>
+struct Carro
 {
     string marca;
     string modelo;
@@ -16,15 +14,13 @@ class CarroControlador
 public:
     void getCarros(string marca, string modelo){
         int param = request().query("p");
-        response resp;
-        resp.body() = "Marca: "+marca+" Modelo: "+modelo+", Param: "+to_string(param);
-        send( resp );
+        cout << request().body();
+        ok( "Marca: "+marca+" Modelo: "+modelo+", Param: "+to_string(param) );
     }
 
     void um2tres(string um, string dois, int tres){
         response resp;
-        resp.body() = "um: "+um+" dois: "+dois+" tres: "+to_string(tres);
-        send( resp );
+        ok( "um: "+um+" dois: "+dois+" tres: "+to_string(tres) );
     }
 
     void pega(int numero){
@@ -51,7 +47,6 @@ int main()
     httpserver::HttpServer server;
     CarroControlador carro{server};
 
-    cout << "Acesse: http://localhost:3000" << endl;
-
+    cout << "Acesse: https://localhost:3000" << endl;
     server.run();
 }
