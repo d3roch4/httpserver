@@ -12,7 +12,7 @@ using namespace std;
 template<class F, int NumberParameters>
 class wrap_handle_request_basic : public wrap_handle_request_i
 {
-    const std::regex regex_;
+    std::regex regex_;
     std::smatch what_;
     F function_;
 public:
@@ -21,6 +21,8 @@ public:
         regex_{ exp }
     {
     }
+
+    parser_request_basic(const parser_request_basic<F, NumberParameters>& other) = default;
 
     bool macth(const std::string& path){
         return std::regex_search(path, what_, regex_);
@@ -37,6 +39,12 @@ public:
 
         auto tuple = a2t(array);
         invoker(function_, tuple);
+    }
+
+    shared_ptr<parser::parser_request_i> copy()
+    {
+        auto p = new parser_request_basic<F, NumberParameters>(*this);
+        return shared_ptr<parser::parser_request_i>(p);
     }
 };
 

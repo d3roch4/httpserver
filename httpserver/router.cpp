@@ -13,7 +13,24 @@ namespace http = boost::beast::http;            // from <boost/beast/http.hpp>
 
 router::router() {}
 
+<<<<<<< HEAD
 void router::add(verb method, shared_ptr<wrap_handle_request_i> tratador)
+=======
+router::router(const router &other)
+{
+    this->public_dir = other.public_dir;
+    this->mRotas = other.mRotas;
+
+    for(auto& pair: this->mRotas){
+        for(auto&& p: pair.second){
+            auto copy = p->copy();
+            p.swap(copy);
+        }
+    }
+}
+
+void router::add(verb method, shared_ptr<parser::parser_request_i> tratador)
+>>>>>>> master
 {
     mRotas[(int)method].push_back(tratador);
 }
@@ -31,7 +48,11 @@ void router::dispatcher(request_parser_empty &req)
 
             for(shared_ptr<wrap_handle_request_i> pr: rota.second){
                 try{
+<<<<<<< HEAD
                     const std::string& str = path.to_string();
+=======
+                    const string& str = path.to_string();
+>>>>>>> master
                     if(pr->macth(str)){
                         const auto& filters = pr->filters;
                         for(const auto& filter: filters)
