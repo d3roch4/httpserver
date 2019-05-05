@@ -44,7 +44,6 @@ dynamic_request::dynamic_request(request_parser_empty& req_empty, http_session_i
     session_(session) {
 }
 
-
 parameter_parser dynamic_request::query(const std::string &key)
 {
     if(query_.empty())

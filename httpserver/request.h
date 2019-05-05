@@ -37,6 +37,18 @@ public:
         return parser_body.release().body();
     }
 
+    template<class T>
+    T query(const std::string &key, T defaultValue )
+    {
+        if(query_.empty())
+            parse_query();
+        auto itr = query_.find(key);
+        if(itr != query_.end())
+            defaultValue = itr->second;
+
+        return defaultValue;
+    }
+
     void socket(boost::asio::ip::tcp::socket &skt);
     void buffer(boost::beast::flat_buffer &bff);
     parameter_parser query(const std::string& key);
