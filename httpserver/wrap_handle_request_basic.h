@@ -23,7 +23,7 @@ public:
     }
 
     bool macth(const std::string& path){
-        return std::regex_search(path, what_, regex_);
+        return std::regex_match(path, what_, regex_);
     }
 
     void operator()()
