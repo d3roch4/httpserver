@@ -1,5 +1,6 @@
 # httpserver
 Uma biblioteca para criação de servidores web embutidos escrita em C++ com o uso da boost::beast.
+Sem SSL
 
 ## Pre-requisitos:
 - boost
