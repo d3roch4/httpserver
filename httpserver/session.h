@@ -4,7 +4,11 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/beast/experimental/core/ssl_stream.hpp>
+#if BOOST_VERSION >= 107000
+#   include <boost/beast/ssl/ssl_stream.hpp>
+#else
+#   include <boost/beast/experimental/core/ssl_stream.hpp>
+#endif
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/signal_set.hpp>
