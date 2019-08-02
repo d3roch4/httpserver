@@ -5,7 +5,7 @@
 #include "wrap_handle_request_basic.h"
 #include "request.h"
 #include "response.h"
-#include <initializer_list>
+#include "session.h"
 
 namespace httpserver
 {
@@ -34,8 +34,11 @@ public:
         route({}, method, path, function, args...);
     }
 
-
-    void run(const string& address = "0.0.0.0", unsigned short port = 3000, const string& public_dir = "public_dir", int thread_qtd=4 );
+    void run(const string& address = "0.0.0.0",
+             std::vector<std::pair<unsigned short, bool>> ports = { {3000, false}, {3001, true} }, // 3000 plain, 3001 ssl
+             const string& public_dir = "public_dir",
+             int thread_qtd=4,
+             const std::string& certificadoFileName="", const std::string& chaveFileName="");
 };
 
 

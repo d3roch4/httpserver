@@ -1,11 +1,14 @@
 build/
 old_code/
+.vscode/
 
 CMakeLists.txt.user
 
+.DS_Store
+*/.DS_Storeo
+
 # Prerequisites
 *.d
-
 # Compiled Object files
 *.slo
 *.lo

@@ -18,7 +18,7 @@ void router::add(verb method, shared_ptr<wrap_handle_request_i> tratador)
     mRotas[(int)method].push_back(tratador);
 }
 
-void router::dispatcher(request_parser_empty &req)
+void router::dispatcher(request_parser_empty& req)
 {
     for(auto& rota: mRotas){
         if(rota.first == (int)req.get().method()){

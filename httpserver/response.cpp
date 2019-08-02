@@ -3,10 +3,28 @@
 #include <boost/filesystem.hpp>
 #include <iomanip>
 #include "compress.h"
+#include "session_plain.h"
+#include "session_ssl.h"
 
 namespace httpserver
 {
 using field = boost::beast::http::field;
+
+
+// Send function
+template <class R>
+void send(R&& response)
+{
+    session* ptr = map_http_session[std::this_thread::get_id()];
+    session_ssl* ssl = dynamic_cast<session_ssl*>(ptr);
+    if(ssl){
+//        ssl.send(response);
+    }else{
+        session_plain* plain = dynamic_cast<session_plain*>(ptr);
+        if(plain)
+            plain->send(response);
+    }
+}
 
 httpserver::response getCompressResponse(const string& str)
 {
@@ -160,8 +178,8 @@ void setHeader(R& res, const std::string &filename, const size_t size, std::time
 
 void send_file(const std::string &filename)
 {
-    http_session_i* hs = get_http_session();
-    const auto& req = hs->request();
+    session& hs = get_http_session();
+    const auto& req = hs.request();
 
     // Attempt to open the file
     boost::beast::error_code ec;

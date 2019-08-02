@@ -14,7 +14,6 @@
 #include <boost/asio/ssl/context.hpp>
 #include <cstddef>
 #include <memory>
-#include <config.h>
 
 /*  Load a signed certificate into the ssl context, and configure
     the context for use with a server.
@@ -27,7 +26,7 @@
 */
 inline
 void
-load_server_certificate(boost::asio::ssl::context& ctx)
+load_server_certificate(boost::asio::ssl::context& ctx, const std::string& certificadoFileName="", const std::string& chaveFileName="")
 {
     /*
         The certificate was generated from CMD.EXE on Windows 10 using:
@@ -110,10 +109,6 @@ load_server_certificate(boost::asio::ssl::context& ctx)
         boost::asio::ssl::context::default_workarounds |
         boost::asio::ssl::context::no_sslv2 |
         boost::asio::ssl::context::single_dh_use);*/
-
-    boost::property_tree::ptree& cfg = getConfig();
-    string certificadoFileName = cfg.get<string>("ssl.certificado", "");
-    string chaveFileName = cfg.get<string>("ssl.chave", "");
 
     if(certificadoFileName.empty())
         ctx.use_certificate_chain(
