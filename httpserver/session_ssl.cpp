@@ -162,7 +162,7 @@ void httpserver::listener_ssl::on_accept(boost::beast::error_code ec, boost::asi
 {
     if(ec)
     {
-        fail(ec, "accept");
+        fail(ec, "listener_ssl::on_accept");
     }
     else
     {

@@ -218,7 +218,7 @@ void listener_palin::on_accept(beast::error_code ec, tcp::socket socket)
 {
     if(ec)
     {
-        fail(ec, "accept");
+        fail(ec, "listener_palin::on_accept");
     }
     else
     {
