@@ -8,7 +8,7 @@ namespace httpserver
 httpserver::session_ssl::session_ssl(boost::asio::ip::tcp::socket &&socket, boost::asio::ssl::context &ctx, router& router)
     : stream_(std::move(socket), ctx)
     , queue_(*this)
-    , router_(router)
+    , session::session(router)
 {
 }
 
@@ -43,50 +43,24 @@ void httpserver::session_ssl::do_read()
     // Construct a new parser for each message
     parser_.emplace();
 
+    // Apply a reasonable limit to the allowed size
+    // of the body in bytes to prevent abuse.
+    parser_->body_limit(1024 * 1024 * 10);
+
     // Set the timeout.
     beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
 
     // Read a request
-    http::async_read(stream_, buffer_, *parser_,
+    http::async_read_header(stream_, buffer_, *parser_,
                      beast::bind_front_handler(
                          &session_ssl::on_read,
                          shared_from_this()));
 }
 
-void httpserver::session_ssl::on_read(boost::beast::error_code ec, std::size_t bytes_transferred)
+
+bool session_ssl::is_queue_write()
 {
-    boost::ignore_unused(bytes_transferred);
-
-    // This means they closed the connection
-    if(ec == http::error::end_of_stream)
-        return do_close();
-
-    if(ec)
-        return fail(ec, "read");
-
-    // Send the response
-    //handle_request(*doc_root_, std::move(req_), lambda_);
-
-    map_http_session[std::this_thread::get_id()] = this;
-    router_.dispatcher( parser_.get() );
-}
-
-void httpserver::session_ssl::on_write(bool close, boost::beast::error_code ec, std::size_t bytes_transferred)
-{
-    boost::ignore_unused(bytes_transferred);
-
-    if(ec)
-        return fail(ec, "write");
-
-    if(close)
-    {
-        // This means we should close the connection, usually because
-        // the response indicated the "Connection: close" semantic.
-        return do_close();
-    }
-
-    // Read another request
-    do_read();
+    return queue_.on_write();
 }
 
 void httpserver::session_ssl::do_close()

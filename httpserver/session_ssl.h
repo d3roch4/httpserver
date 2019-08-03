@@ -32,7 +32,6 @@ class session_ssl : public std::enable_shared_from_this<session_ssl>, public ses
     friend queue<session_ssl>;
     queue<session_ssl> queue_;
     beast::ssl_stream<beast::tcp_stream> stream_;
-    router& router_;
 
 public:
     // Take ownership of the socket
@@ -54,16 +53,7 @@ public:
     void
     do_read();
 
-    void
-    on_read(
-        beast::error_code ec,
-        std::size_t bytes_transferred);
-
-    void
-    on_write(
-        bool close,
-        beast::error_code ec,
-        std::size_t bytes_transferred);
+    bool is_queue_write();
 
     void
     do_close();

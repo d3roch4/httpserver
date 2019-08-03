@@ -22,6 +22,7 @@
 #include <thread>
 #include <string>
 #include <unordered_map>
+#include "router.h"
 
 namespace httpserver {
 
@@ -126,23 +127,31 @@ protected:
         }
     };
 
-    using request_parser_empty = boost::beast::http::request_parser<boost::beast::http::empty_body>;
     // The parser is stored in an optional container so we can
     // construct it from scratch it at the beginning of each new message.
-    boost::optional<request_parser_empty> parser_;
+    boost::optional<http::request_parser<http::empty_body>> parser_;
     std::unordered_map<std::string, boost::any> data_;
     std::shared_ptr<dynamic_request> request_;
     beast::flat_buffer buffer_;
+    router& router_;
 
 public:
-    session();
+    session(router& router);
     virtual ~session(){}
 
     dynamic_request& request();
 
     beast::flat_buffer& buffer();
 
-    virtual void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred) = 0;
+    void on_read(boost::beast::error_code ec, std::size_t bytes_transferred);
+
+    void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred);
+
+    virtual bool is_queue_write() = 0;
+
+    virtual void do_close() = 0;
+
+    virtual void do_read() = 0;
 
     // Return a object in map
     template< class type>

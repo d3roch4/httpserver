@@ -29,6 +29,9 @@ public:
     template<class TypeBody=http::string_body>
     typename TypeBody::value_type body() const{
         http::request_parser<TypeBody> parser_body{std::move(*request_parser_)};
+        // Apply a reasonable limit to the allowed size
+        // of the body in bytes to prevent abuse.
+        parser_body.body_limit(1024 * 1024 * 10);
 
         session_ssl* ssl = dynamic_cast<session_ssl*>(session_);
         if(ssl){

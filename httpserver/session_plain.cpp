@@ -67,7 +67,7 @@ void websocket_session::on_write(beast::error_code ec, std::size_t bytes_transfe
 session_plain::session_plain(tcp::socket &&socket, router& router)
     : stream_(std::move(socket))
     , queue_(*this)
-    , router_(router)
+    , session::session(router)
 {
 }
 
@@ -88,70 +88,21 @@ void session_plain::do_read()
 
     // Apply a reasonable limit to the allowed size
     // of the body in bytes to prevent abuse.
-    parser_->body_limit(10000);
+    parser_->body_limit(1024 * 1024 * 10);
 
     // Set the timeout.
     stream_.expires_after(std::chrono::seconds(30));
 
     // Read a request using the parser-oriented interface
-    http::async_read(stream_, buffer_, *parser_,
+    http::async_read_header(stream_, buffer_, *parser_,
                 beast::bind_front_handler(
                     &session_plain::on_read,
                     shared_from_this()));
 }
 
-void session_plain::on_read(beast::error_code ec, std::size_t bytes_transferred)
+bool session_plain::is_queue_write()
 {
-    boost::ignore_unused(bytes_transferred);
-
-    // This means they closed the connection
-    if(ec == http::error::end_of_stream)
-        return do_close();
-
-    if(ec)
-        return fail(ec, "read");
-
-    // See if it is a WebSocket Upgrade
-    if(websocket::is_upgrade(parser_->get()))
-    {
-        // Create a websocket session, transferring ownership
-        // of both the socket and the HTTP request.
-        std::make_shared<websocket_session>(
-                    stream_.release_socket())->do_accept(parser_->release());
-        return;
-    }
-
-    // Send the response
-    //handle_request(*doc_root_, std::move(parser_->release()), queue_);
-
-    map_http_session[std::this_thread::get_id()] = this;
-    router_.dispatcher( parser_.get() );
-
-    // If we aren't at the queue limit, try to pipeline another request
-    if(! queue_.is_full())
-        do_read();
-}
-
-void session_plain::on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
-{
-    boost::ignore_unused(bytes_transferred);
-
-    if(ec)
-        return fail(ec, "write");
-
-    if(close)
-    {
-        // This means we should close the connection, usually because
-        // the response indicated the "Connection: close" semantic.
-        return do_close();
-    }
-
-    // Inform the queue that a write completed
-    if(queue_.on_write())
-    {
-        // Read another request
-        do_read();
-    }
+    return queue_.on_write();
 }
 
 void session_plain::do_close()

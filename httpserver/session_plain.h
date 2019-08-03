@@ -69,7 +69,6 @@ class session_plain : public std::enable_shared_from_this<session_plain>, public
     friend queue<session_plain>;
     queue<session_plain> queue_;
     beast::tcp_stream stream_;
-    router& router_;
 
 public:
     virtual ~session_plain(){}
@@ -95,12 +94,8 @@ private:
     void
     do_read();
 
-    void
-    on_read(beast::error_code ec, std::size_t bytes_transferred);
-
-    void
-    on_write(bool close, beast::error_code ec, std::size_t bytes_transferred);
-
+    bool is_queue_write();
+    
     void
     do_close();
 };
