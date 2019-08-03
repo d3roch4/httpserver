@@ -1,5 +1,7 @@
 #include "session.h"
 #include <boost/beast/ssl.hpp>
+#include "request.h"
+#include "memory"
 
 namespace httpserver {
 
@@ -18,10 +20,14 @@ session::session()
 
 dynamic_request& session::request()
 {
-    request_ = {&parser_.get()};
-//    r.buffer(this->buffer_);
-//    r.socket(this->stream_.socket());
-    return request_;
+    if(!request_)
+        request_ = std::make_shared<dynamic_request>(parser_.get_ptr(), this);
+    return *request_;
+}
+
+beast::flat_buffer& session::buffer()
+{
+    return buffer_;
 }
 
 }

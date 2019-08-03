@@ -15,8 +15,8 @@
 #include <string>
 #include <thread>
 #include <vector>
-
-#include "session_plain.h"
+#include "router.h"
+#include "session.h"
 
 namespace httpserver {
 
@@ -32,7 +32,6 @@ class session_ssl : public std::enable_shared_from_this<session_ssl>, public ses
     friend queue<session_ssl>;
     queue<session_ssl> queue_;
     beast::ssl_stream<beast::tcp_stream> stream_;
-    beast::flat_buffer buffer_;
     router& router_;
 
 public:
@@ -42,6 +41,8 @@ public:
         tcp::socket&& socket,
         ssl::context& ctx,
         router& router);
+
+    beast::ssl_stream<beast::tcp_stream>& stream();
 
     // Start the asynchronous operation
     void
@@ -69,6 +70,13 @@ public:
 
     void
     on_shutdown(beast::error_code ec);
+
+    // put a response in queue
+    template <class R>
+    void send(R&& response)
+    {
+        queue_(std::move(response));
+    }
 };
 
 //------------------------------------------------------------------------------

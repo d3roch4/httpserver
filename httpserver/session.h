@@ -1,7 +1,5 @@
 #ifndef SESSEION_H
 #define SESSEION_H
-#include "request.h"
-
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/websocket.hpp>
@@ -32,6 +30,7 @@ namespace http = beast::http;                   // from <boost/beast/http.hpp>
 namespace websocket = beast::websocket;         // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;                    // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;
+class dynamic_request;
 
 class session
 {    
@@ -127,17 +126,21 @@ protected:
         }
     };
 
+    using request_parser_empty = boost::beast::http::request_parser<boost::beast::http::empty_body>;
     // The parser is stored in an optional container so we can
     // construct it from scratch it at the beginning of each new message.
     boost::optional<request_parser_empty> parser_;
     std::unordered_map<std::string, boost::any> data_;
-    dynamic_request request_;
+    std::shared_ptr<dynamic_request> request_;
+    beast::flat_buffer buffer_;
 
 public:
     session();
     virtual ~session(){}
 
     dynamic_request& request();
+
+    beast::flat_buffer& buffer();
 
     virtual void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred) = 0;
 

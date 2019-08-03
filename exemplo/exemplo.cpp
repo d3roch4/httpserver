@@ -19,7 +19,7 @@ public:
      }
 
      void um2tres(string um, string dois, int tres){
-         ok( "um: "+um+" dois: "+dois+" tres: "+to_string(tres) );
+         ok( "um: "+um+" dois: "+dois+" tres: "+to_string(tres)+" calc: "+to_string(tres*stod(dois)/stoi(um)) );
      }
 
      void pega(int numero){

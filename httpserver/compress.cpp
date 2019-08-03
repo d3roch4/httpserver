@@ -1,5 +1,5 @@
 #include "compress.h"
-#include <httpserver/httpserver.h>
+#include "request.h"
 
 std::string compress_gzip(const std::string &str, int compressionlevel)
 {

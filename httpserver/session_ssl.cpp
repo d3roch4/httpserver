@@ -12,6 +12,11 @@ httpserver::session_ssl::session_ssl(boost::asio::ip::tcp::socket &&socket, boos
 {
 }
 
+beast::ssl_stream<beast::tcp_stream>& session_ssl::stream()
+{
+    return stream_;
+}
+
 void httpserver::session_ssl::run()
 {
     // Set the timeout.
@@ -61,6 +66,9 @@ void httpserver::session_ssl::on_read(boost::beast::error_code ec, std::size_t b
 
     // Send the response
     //handle_request(*doc_root_, std::move(req_), lambda_);
+
+    map_http_session[std::this_thread::get_id()] = this;
+    router_.dispatcher( parser_.get() );
 }
 
 void httpserver::session_ssl::on_write(bool close, boost::beast::error_code ec, std::size_t bytes_transferred)

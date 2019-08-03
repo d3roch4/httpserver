@@ -18,7 +18,7 @@ void send(R&& response)
     session* ptr = map_http_session[std::this_thread::get_id()];
     session_ssl* ssl = dynamic_cast<session_ssl*>(ptr);
     if(ssl){
-//        ssl.send(response);
+       ssl->send(response);
     }else{
         session_plain* plain = dynamic_cast<session_plain*>(ptr);
         if(plain)

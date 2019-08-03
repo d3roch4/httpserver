@@ -71,6 +71,11 @@ session_plain::session_plain(tcp::socket &&socket, router& router)
 {
 }
 
+beast::tcp_stream& session_plain::stream()
+{
+    return stream_;
+}
+
 void session_plain::run()
 {
     do_read();

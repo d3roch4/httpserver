@@ -2,7 +2,6 @@
 #define SESSION_PLAIN_H
 #include "session.h"
 #include "router.h"
-#include "request.h"
 
 namespace httpserver {            // from <boost/asio/ip/tcp.hpp>
 
@@ -70,7 +69,6 @@ class session_plain : public std::enable_shared_from_this<session_plain>, public
     friend queue<session_plain>;
     queue<session_plain> queue_;
     beast::tcp_stream stream_;
-    beast::flat_buffer buffer_;
     router& router_;
 
 public:
@@ -81,9 +79,12 @@ public:
         tcp::socket&& socket,
         router& router);
 
+    beast::tcp_stream& stream();
+
     // Start the session
     void
     run();
+
     // put a response in queue
     template <class R>
     void send(R&& response)
