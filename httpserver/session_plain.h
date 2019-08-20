@@ -19,7 +19,7 @@ public:
     // Start the asynchronous accept operation
     template<class Body, class Allocator>
     void
-    do_accept(http::request<Body, http::basic_fields<Allocator>> req)
+    do_accept(boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>> req)
     {
         // Set suggested timeout settings for the websocket
         ws_.set_option(
@@ -30,7 +30,7 @@ public:
         ws_.set_option(websocket::stream_base::decorator(
             [](websocket::response_type& res)
             {
-                res.set(http::field::server,
+                res.set(boost::beast::http::field::server,
                     std::string(BOOST_BEAST_VERSION_STRING) +
                         " advanced-server");
             }));

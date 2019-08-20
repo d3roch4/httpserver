@@ -26,7 +26,6 @@
 
 namespace httpserver {
 
-namespace http = boost::beast::http;            // from <boost/beast/http.hpp>
 namespace websocket = boost::beast::websocket;         // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;                    // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;
@@ -87,17 +86,17 @@ protected:
         // Called by the HTTP handler to send a response.
         template<bool isRequest, class Body, class Fields>
         void
-        operator()(http::message<isRequest, Body, Fields>&& msg)
+        operator()(boost::beast::http::message<isRequest, Body, Fields>&& msg)
         {
             // This holds a work item
             struct work_impl : work
             {
                 Self& self_;
-                http::message<isRequest, Body, Fields> msg_;
+                boost::beast::http::message<isRequest, Body, Fields> msg_;
 
                 work_impl(
                     Self& self,
-                    http::message<isRequest, Body, Fields>&& msg)
+                    boost::beast::http::message<isRequest, Body, Fields>&& msg)
                     : self_(self)
                     , msg_(std::move(msg))
                 {
@@ -106,7 +105,7 @@ protected:
                 void
                 operator()()
                 {
-                    http::async_write(
+                    boost::beast::http::async_write(
                         self_.stream_,
                         msg_,
                         boost::beast::bind_front_handler(
@@ -128,7 +127,7 @@ protected:
 
     // The parser is stored in an optional container so we can
     // construct it from scratch it at the beginning of each new message.
-    boost::optional<http::request_parser<http::empty_body>> parser_;
+    boost::optional<boost::beast::http::request_parser<boost::beast::http::empty_body>> parser_;
     std::unordered_map<std::string, boost::any> data_;
     std::shared_ptr<dynamic_request> request_;
     boost::beast::flat_buffer buffer_;

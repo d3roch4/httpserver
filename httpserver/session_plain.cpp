@@ -94,7 +94,7 @@ void session_plain::do_read()
     stream_.expires_after(std::chrono::seconds(30));
 
     // Read a request using the parser-oriented interface
-    http::async_read_header(stream_, buffer_, *parser_,
+    boost::beast::http::async_read_header(stream_, buffer_, *parser_,
                 boost::beast::bind_front_handler(
                     &session_plain::on_read,
                     shared_from_this()));

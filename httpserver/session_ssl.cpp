@@ -51,7 +51,7 @@ void httpserver::session_ssl::do_read()
     boost::beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
 
     // Read a request
-    http::async_read_header(stream_, buffer_, *parser_,
+    boost::beast::http::async_read_header(stream_, buffer_, *parser_,
                      boost::beast::bind_front_handler(
                          &session_ssl::on_read,
                          shared_from_this()));

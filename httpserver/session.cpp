@@ -37,7 +37,7 @@ void session::on_read(boost::beast::error_code ec, std::size_t bytes_transferred
     boost::ignore_unused(bytes_transferred);
 
     // This means they closed the connection
-    if(ec == http::error::end_of_stream)
+    if(ec == boost::beast::http::error::end_of_stream)
         return do_close();
 
     if(ec)
