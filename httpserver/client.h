@@ -8,7 +8,6 @@
 
 namespace httpserver
 {
-namespace http = boost::beast::http;
 namespace ssl = boost::asio::ssl;
 using verb = boost::beast::http::verb;
 
@@ -48,7 +47,7 @@ struct client
                             bool redirects = true,
                             int timeout = 10);
 
-    response request(http::request<http::string_body> &req);
+    response request(boost::beast::http::request<boost::beast::http::string_body> &req);
 
 };
 

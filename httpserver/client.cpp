@@ -95,7 +95,7 @@ httpserver::response httpserver::client::request(verb method, const std::string 
     return request(req);
 }
 
-response client::request(http::request<http::string_body> &req)
+response client::request(boost::beast::http::request<http::string_body> &req)
 {
     req.set(http::field::host, host);
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
