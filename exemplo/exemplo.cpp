@@ -1,4 +1,5 @@
 #include <httpserver/httpserver.h>
+#include <httpserver/client.h>
 
 using namespace httpserver;
 
@@ -24,7 +25,7 @@ public:
 
      void pega(int numero){
          response resp;
-         resp.body() = "Peguei: "+to_string(numero);
+         resp.body() = "Peguei: "+to_string(numero)+", body: "+request().body();
          //send( resp );
      }
 
@@ -32,6 +33,7 @@ public:
          bs.route(verb::get, "/carros/(.+)/(.+)", std::bind(&CarroControlador::getCarros, this, _1, _2), "marca", "modelo");
          bs.route(verb::get, "/usuario/(.+)/extrato", std::bind(&CarroControlador::pega, this, _1), "");
          bs.route(verb::get, "/um/([0-9]+)/dois/(.*)/tres/(.*)/fim", std::bind(&CarroControlador::um2tres, this, _1, _2, _3), "marca", "modelo", "");
+         bs.route(verb::get, "/pega/([0-9]+)", std::bind(&CarroControlador::pega, this, _1), _1);
     }
 };
 
@@ -47,5 +49,14 @@ int main()
 
     cout << "Acesse: http://localhost:3000" << endl;
     cout << "Acesse: https://localhost:3001" << endl;
-    server.run();
+    thread t([&]{
+        server.run();
+    });
+    
+    client http{"https://localhost"};
+    clog << "/pega" << endl;
+    clog << http.request(verb::post, "/pega", "Testando. Um, dois, três", "");
+
+    clog << "join" << endl;
+    t.join();
 }
