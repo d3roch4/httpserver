@@ -27,7 +27,7 @@ dynamic_request& session::request()
     return *request_;
 }
 
-beast::flat_buffer& session::buffer()
+boost::beast::flat_buffer& session::buffer()
 {
     return buffer_;
 }
@@ -50,7 +50,7 @@ void session::on_read(boost::beast::error_code ec, std::size_t bytes_transferred
     router_.dispatcher( parser_.get() );
 }
 
-void session::on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
+void session::on_write(bool close, boost::beast::error_code ec, std::size_t bytes_transferred)
 {
     boost::ignore_unused(bytes_transferred);
 

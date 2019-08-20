@@ -8,8 +8,8 @@ namespace httpserver {            // from <boost/asio/ip/tcp.hpp>
 // Echoes back all received WebSocket messages
 class websocket_session : public std::enable_shared_from_this<websocket_session>
 {
-    websocket::stream<beast::tcp_stream> ws_;
-    beast::flat_buffer buffer_;
+    websocket::stream<boost::beast::tcp_stream> ws_;
+    boost::beast::flat_buffer buffer_;
 
 public:
     // Take ownership of the socket
@@ -24,7 +24,7 @@ public:
         // Set suggested timeout settings for the websocket
         ws_.set_option(
             websocket::stream_base::timeout::suggested(
-                beast::role_type::server));
+                boost::beast::role_type::server));
 
         // Set a decorator to change the Server of the handshake
         ws_.set_option(websocket::stream_base::decorator(
@@ -38,26 +38,26 @@ public:
         // Accept the websocket handshake
         ws_.async_accept(
             req,
-            beast::bind_front_handler(
+            boost::beast::bind_front_handler(
                 &websocket_session::on_accept,
                 shared_from_this()));
     }
 
 private:
     void
-    on_accept(beast::error_code ec);
+    on_accept(boost::beast::error_code ec);
 
     void
     do_read();
 
     void
     on_read(
-        beast::error_code ec,
+        boost::beast::error_code ec,
         std::size_t bytes_transferred);
 
     void
     on_write(
-        beast::error_code ec,
+        boost::beast::error_code ec,
         std::size_t bytes_transferred);
 };
 
@@ -68,7 +68,7 @@ class session_plain : public std::enable_shared_from_this<session_plain>, public
 {
     friend queue<session_plain>;
     queue<session_plain> queue_;
-    beast::tcp_stream stream_;
+    boost::beast::tcp_stream stream_;
 
 public:
     virtual ~session_plain(){}
@@ -78,7 +78,7 @@ public:
         tcp::socket&& socket,
         router& router);
 
-    beast::tcp_stream& stream();
+    boost::beast::tcp_stream& stream();
 
     // Start the session
     void
@@ -124,7 +124,7 @@ private:
     do_accept();
 
     void
-    on_accept(beast::error_code ec, tcp::socket socket);
+    on_accept(boost::beast::error_code ec, tcp::socket socket);
 };
 //------------------------------------------------------------------------------
 

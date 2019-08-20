@@ -27,7 +27,7 @@ class session_ssl : public std::enable_shared_from_this<session_ssl>, public ses
 {
     friend queue<session_ssl>;
     queue<session_ssl> queue_;
-    beast::ssl_stream<beast::tcp_stream> stream_;
+    boost::beast::ssl_stream<boost::beast::tcp_stream> stream_;
 
 public:
     // Take ownership of the socket
@@ -37,14 +37,14 @@ public:
         ssl::context& ctx,
         router& router);
 
-    beast::ssl_stream<beast::tcp_stream>& stream();
+    boost::beast::ssl_stream<boost::beast::tcp_stream>& stream();
 
     // Start the asynchronous operation
     void
     run();
 
     void
-    on_handshake(beast::error_code ec);
+    on_handshake(boost::beast::error_code ec);
 
     void
     do_read();
@@ -55,7 +55,7 @@ public:
     do_close();
 
     void
-    on_shutdown(beast::error_code ec);
+    on_shutdown(boost::beast::error_code ec);
 
     // put a response in queue
     template <class R>
@@ -91,7 +91,7 @@ private:
     do_accept();
 
     void
-    on_accept(beast::error_code ec, tcp::socket socket);
+    on_accept(boost::beast::error_code ec, tcp::socket socket);
 };
 
 //------------------------------------------------------------------------------

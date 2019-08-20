@@ -11,7 +11,7 @@ websocket_session::websocket_session(tcp::socket &&socket)
 {
 }
 
-void websocket_session::on_accept(beast::error_code ec)
+void websocket_session::on_accept(boost::beast::error_code ec)
 {
     if(ec)
         return fail(ec, "accept");
@@ -25,12 +25,12 @@ void websocket_session::do_read()
     // Read a message into our buffer
     ws_.async_read(
                 buffer_,
-                beast::bind_front_handler(
+                boost::beast::bind_front_handler(
                     &websocket_session::on_read,
                     shared_from_this()));
 }
 
-void websocket_session::on_read(beast::error_code ec, std::size_t bytes_transferred)
+void websocket_session::on_read(boost::beast::error_code ec, std::size_t bytes_transferred)
 {
     boost::ignore_unused(bytes_transferred);
 
@@ -45,12 +45,12 @@ void websocket_session::on_read(beast::error_code ec, std::size_t bytes_transfer
     ws_.text(ws_.got_text());
     ws_.async_write(
                 buffer_.data(),
-                beast::bind_front_handler(
+                boost::beast::bind_front_handler(
                     &websocket_session::on_write,
                     shared_from_this()));
 }
 
-void websocket_session::on_write(beast::error_code ec, std::size_t bytes_transferred)
+void websocket_session::on_write(boost::beast::error_code ec, std::size_t bytes_transferred)
 {
     boost::ignore_unused(bytes_transferred);
 
@@ -71,7 +71,7 @@ session_plain::session_plain(tcp::socket &&socket, router& router)
 {
 }
 
-beast::tcp_stream& session_plain::stream()
+boost::beast::tcp_stream& session_plain::stream()
 {
     return stream_;
 }
@@ -95,7 +95,7 @@ void session_plain::do_read()
 
     // Read a request using the parser-oriented interface
     http::async_read_header(stream_, buffer_, *parser_,
-                beast::bind_front_handler(
+                boost::beast::bind_front_handler(
                     &session_plain::on_read,
                     shared_from_this()));
 }
@@ -108,7 +108,7 @@ bool session_plain::is_queue_write()
 void session_plain::do_close()
 {
     // Send a TCP shutdown
-    beast::error_code ec;
+    boost::beast::error_code ec;
     stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
 
     // At this point the connection is closed gracefully
@@ -119,7 +119,7 @@ listener_palin::listener_palin(boost::asio::io_context &ioc, tcp::endpoint endpo
     , acceptor_(net::make_strand(ioc))
     , router_(router)
 {
-    beast::error_code ec;
+    boost::beast::error_code ec;
 
     // Open the acceptor
     acceptor_.open(endpoint.protocol(), ec);
@@ -165,12 +165,12 @@ void listener_palin::do_accept()
     // The new connection gets its own strand
     acceptor_.async_accept(
                 net::make_strand(ioc_),
-                beast::bind_front_handler(
+                boost::beast::bind_front_handler(
                     &listener_palin::on_accept,
                     shared_from_this()));
 }
 
-void listener_palin::on_accept(beast::error_code ec, tcp::socket socket)
+void listener_palin::on_accept(boost::beast::error_code ec, tcp::socket socket)
 {
     if(ec)
     {

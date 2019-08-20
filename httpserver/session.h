@@ -26,9 +26,8 @@
 
 namespace httpserver {
 
-namespace beast = boost::beast;                 // from <boost/beast.hpp>
-namespace http = beast::http;                   // from <boost/beast/http.hpp>
-namespace websocket = beast::websocket;         // from <boost/beast/websocket.hpp>
+namespace http = boost::beast::http;            // from <boost/beast/http.hpp>
+namespace websocket = boost::beast::websocket;         // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;                    // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;
 class dynamic_request;
@@ -110,7 +109,7 @@ protected:
                     http::async_write(
                         self_.stream_,
                         msg_,
-                        beast::bind_front_handler(
+                        boost::beast::bind_front_handler(
                             &Self::on_write,
                             self_.shared_from_this(),
                             msg_.need_eof()));
@@ -132,7 +131,7 @@ protected:
     boost::optional<http::request_parser<http::empty_body>> parser_;
     std::unordered_map<std::string, boost::any> data_;
     std::shared_ptr<dynamic_request> request_;
-    beast::flat_buffer buffer_;
+    boost::beast::flat_buffer buffer_;
     router& router_;
 
 public:
@@ -141,11 +140,11 @@ public:
 
     dynamic_request& request();
 
-    beast::flat_buffer& buffer();
+    boost::beast::flat_buffer& buffer();
 
     void on_read(boost::beast::error_code ec, std::size_t bytes_transferred);
 
-    void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred);
+    void on_write(bool close, boost::beast::error_code ec, std::size_t bytes_transferred);
 
     virtual bool is_queue_write() = 0;
 

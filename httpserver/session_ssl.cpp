@@ -12,7 +12,7 @@ httpserver::session_ssl::session_ssl(boost::asio::ip::tcp::socket &&socket, boos
 {
 }
 
-beast::ssl_stream<beast::tcp_stream>& session_ssl::stream()
+boost::beast::ssl_stream<boost::beast::tcp_stream>& session_ssl::stream()
 {
     return stream_;
 }
@@ -20,12 +20,12 @@ beast::ssl_stream<beast::tcp_stream>& session_ssl::stream()
 void httpserver::session_ssl::run()
 {
     // Set the timeout.
-    beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
+    boost::beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
 
     // Perform the SSL handshake
     stream_.async_handshake(
                 ssl::stream_base::server,
-                beast::bind_front_handler(
+                boost::beast::bind_front_handler(
                     &session_ssl::on_handshake,
                     shared_from_this()));
 }
@@ -48,11 +48,11 @@ void httpserver::session_ssl::do_read()
     parser_->body_limit(1024 * 1024 * 10);
 
     // Set the timeout.
-    beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
+    boost::beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
 
     // Read a request
     http::async_read_header(stream_, buffer_, *parser_,
-                     beast::bind_front_handler(
+                     boost::beast::bind_front_handler(
                          &session_ssl::on_read,
                          shared_from_this()));
 }
@@ -66,11 +66,11 @@ bool session_ssl::is_queue_write()
 void httpserver::session_ssl::do_close()
 {
     // Set the timeout.
-    beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
+    boost::beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
 
     // Perform the SSL shutdown
     stream_.async_shutdown(
-                beast::bind_front_handler(
+                boost::beast::bind_front_handler(
                     &session_ssl::on_shutdown,
                     shared_from_this()));
 }
@@ -89,7 +89,7 @@ httpserver::listener_ssl::listener_ssl(boost::asio::io_context &ioc, boost::asio
     , acceptor_(ioc)
     , router_(router)
 {
-    beast::error_code ec;
+    boost::beast::error_code ec;
 
     // Open the acceptor
     acceptor_.open(endpoint.protocol(), ec);
@@ -135,7 +135,7 @@ void httpserver::listener_ssl::do_accept()
     // The new connection gets its own strand
     acceptor_.async_accept(
                 net::make_strand(ioc_),
-                beast::bind_front_handler(
+                boost::beast::bind_front_handler(
                     &listener_ssl::on_accept,
                     shared_from_this()));
 }
