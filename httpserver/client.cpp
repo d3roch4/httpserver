@@ -97,10 +97,9 @@ httpserver::response httpserver::client::request(verb method, const std::string 
 
 response client::request(boost::beast::http::request<http::string_body> &req)
 {
+    connect();
     req.set(http::field::host, host);
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-
-    connect();
 
     // Send the HTTP request to the remote host
     if(useSSL)

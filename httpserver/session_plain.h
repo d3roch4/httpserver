@@ -128,7 +128,7 @@ private:
 };
 //------------------------------------------------------------------------------
 
-int setup_plain(const std::string &addr, unsigned short port, router& router, int thread_qtd);
+void setup_plain(const std::string &addr, unsigned short port, router& router, int thread_qtd);
 
 }
 #endif // SESSION_PLAIN_H

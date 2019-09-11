@@ -188,7 +188,7 @@ void listener_palin::on_accept(boost::beast::error_code ec, tcp::socket socket)
     do_accept();
 }
 
-int setup_plain(const string &addr, unsigned short port, router &router, int thread_qtd)
+void setup_plain(const string &addr, unsigned short port, router &router, int thread_qtd)
 {
     auto const address = net::ip::make_address(addr);
     auto const threads = std::max<int>(1, thread_qtd);

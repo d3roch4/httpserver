@@ -17,10 +17,6 @@ struct parameter_parser : public std::string
         std::string::swap(sh);
     }
 
-    operator std::string& (){
-        return *this;
-    }
-
     operator bool (){
         if(size()){
             char c = at(0);
