@@ -29,6 +29,9 @@ if(BUILD_EXAMPLE)
   add_subdirectory(exemplo)
 endif()
 
+if( CMAKE_COMPILER_IS_MINGW )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Og -Wa,-mbig-obj")
+endif()
 
 install(TARGETS ${PROJECT_NAME} DESTINATION lib)
 install(FILES ${HPP_FILES} DESTINATION include/${PROJECT_NAME})
