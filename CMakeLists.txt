@@ -17,13 +17,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC ./)
 
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} pthread ssl crypto)
 
-if(NOT TARGET mor)
-    add_subdirectory(../mor mor)
-endif()
-target_link_libraries(${PROJECT_NAME} mor)
-
 if(NOT TARGET d3util)
-    add_subdirectory(../d3util d3util)
+    add_subdirectory(deps/d3util d3util)
 endif()
 target_link_libraries(${PROJECT_NAME} d3util z)
 
