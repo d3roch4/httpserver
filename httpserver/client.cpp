@@ -1,3 +1,4 @@
+#define WIN32_LEAN_AND_MEAN 
 #include "client.h"
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>

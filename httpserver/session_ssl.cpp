@@ -191,6 +191,7 @@ int setup_ssl(const std::string &addr, unsigned short port, router& router, int 
             ioc.run();
         });
     ioc.run();
+    return 0;
 }
 
 }
