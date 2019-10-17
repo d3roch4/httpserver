@@ -1,3 +1,0 @@
-[submodule "deps/d3util"]
-	path = deps/d3util
-	url = https://github.com/d3roch4/d3util
