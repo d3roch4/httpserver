@@ -18,7 +18,7 @@ file(GLOB HPP_FILES httpserver/*/*.h httpserver/*.h)
 add_library(${PROJECT_NAME} ${CPP_FILES} ${HPP_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ./)
 
-target_link_libraries(${PROJECT_NAME} Boost::system Boost::thread Boost::regex pthread OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB)
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} pthread OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB)
 
 if(NOT TARGET d3util)
     add_subdirectory(deps/d3util d3util)
