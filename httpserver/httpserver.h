@@ -32,6 +32,20 @@ public:
     void route(verb method, const string &path, F function, const Args&... args)
     {
         route({}, method, path, function, args...);
+    }   
+    
+    template<class I, class F, typename... Args >
+    void routeB(vector<function_filter>&& filters, verb method, const string &path, I instance, F function, const Args&... args)
+    {
+        auto binded = bind(function, instance, args...);        
+        route(move(filters), method, path, binded, args...);
+    }
+
+    template<class I, class F, typename... Args >
+    void routeB(verb method, const string &path, I instance, F function, const Args&... args)
+    {
+        auto binded = bind(function, instance, args...);        
+        route({}, method, path, binded, args...);
     }
 
     void run(const string& address = "0.0.0.0",
