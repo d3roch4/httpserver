@@ -85,8 +85,6 @@ httpserver::response httpserver::client::request(verb method, const std::string 
     }
 
     http::request<http::string_body> req{method, target, 11};
-    req.set(http::field::host, host);
-    req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
     if(params.size() && method != http::verb::get){
         req.set(http::field::content_length, params.size());
         req.set(http::field::content_type, content_type);
@@ -96,6 +94,7 @@ httpserver::response httpserver::client::request(verb method, const std::string 
     return request(req);
 }
 
+
 response client::request(boost::beast::http::request<http::string_body> &req)
 {
     connect();
@@ -103,23 +102,26 @@ response client::request(boost::beast::http::request<http::string_body> &req)
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
     // Send the HTTP request to the remote host
+    boost::system::error_code ec;
     if(useSSL)
-        http::write(stream, req);
+        http::write(stream, req, ec);
     else
-        http::write(socket, req);
+        http::write(socket, req, ec);
+
+    if(ec)
+        throw_with_trace( boost::system::system_error(ec) );
 
     // Declare a container to hold the response
     http::response<http::string_body> res;
 
     // Receive the HTTP response
-    boost::system::error_code ec;
     if(useSSL)
         http::read(stream, buffer, res, ec);
     else
         http::read(socket, buffer, res, ec);
 
     if(ec)
-        throw boost::system::system_error{ec};
+        throw_with_trace( boost::system::system_error(ec) );
 
     return res;
 }

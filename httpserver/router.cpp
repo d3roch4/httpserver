@@ -40,7 +40,9 @@ void router::dispatcher(request_parser_empty& req)
                         return (*pr)();
                     }
                 }catch(const std::exception& ex){
-                    server_error(req.get().target().to_string()+": "+ex.what());
+                    string erro = req.get().target().to_string()+": "+ex.what();
+                    LOG_ERROR << erro;
+                    server_error(erro);
                     print_stacktrace(ex);
                     return;
                 }catch(...){

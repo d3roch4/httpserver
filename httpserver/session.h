@@ -105,13 +105,8 @@ protected:
                 void
                 operator()()
                 {
-                    boost::beast::http::async_write(
-                        self_.stream_,
-                        msg_,
-                        boost::beast::bind_front_handler(
-                            &Self::on_write,
-                            self_.shared_from_this(),
-                            msg_.need_eof()));
+                    boost::beast::http::async_write(self_.stream_, msg_,
+                                boost::beast::bind_front_handler(&Self::on_write, self_.shared_from_this(),msg_.need_eof()));
                 }
             };
 
@@ -120,7 +115,7 @@ protected:
                 boost::make_unique<work_impl>(self_, std::move(msg)));
 
             // If there was no previous work, start this one
-            if(items_.size() == 1)
+            if(items_.size() >= 1)
                 (*items_.front())();
         }
     };
