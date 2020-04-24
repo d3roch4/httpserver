@@ -54,8 +54,8 @@ parameter_parser dynamic_request::query(const std::string &key)
     auto itr = query_.find(key);
     if(itr != query_.end())
         return itr->second;
-
-    return {};
+    else
+        return {};
 }
 
 std::unordered_map<std::string, parameter_parser> dynamic_request::query()

@@ -47,6 +47,20 @@ public:
     }
 
     parameter_parser query(const std::string& key);
+
+    template<class T>
+    T query(const std::string& key, const T& defaultValue){
+        if(query_.empty())
+            parse_query();
+        auto itr = query_.find(key);
+        if(itr != query_.end()){
+            std::stringstream ss;
+            T ret{};
+            ss >> ret;
+            return ret;
+        }else
+            return defaultValue;
+    }
     std::unordered_map<std::string, parameter_parser> query();
 };
 
