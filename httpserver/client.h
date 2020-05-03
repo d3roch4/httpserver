@@ -9,6 +9,7 @@
 namespace httpserver
 {
 namespace ssl = boost::asio::ssl;
+namespace http = boost::beast::http;
 using verb = boost::beast::http::verb;
 
 struct client
