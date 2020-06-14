@@ -54,7 +54,7 @@ public:
             parse_query();
         auto itr = query_.find(key);
         if(itr != query_.end()){
-            std::stringstream ss;
+            std::stringstream ss(itr->second);
             T ret{};
             ss >> ret;
             return ret;
