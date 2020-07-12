@@ -245,7 +245,7 @@ boost::beast::string_view mime_type(boost::beast::string_view path)
     if(iequals(ext, ".tif"))  return "image/tiff";
     if(iequals(ext, ".svg"))  return "image/svg+xml";
     if(iequals(ext, ".svgz")) return "image/svg+xml";
-    return "application/text";
+    return "application/octet-stream";
 }
 
 }

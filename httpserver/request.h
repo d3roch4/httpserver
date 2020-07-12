@@ -56,7 +56,7 @@ public:
         if(itr != query_.end()){
             std::stringstream ss(itr->second);
             T ret{};
-            ss >> ret;
+            ss >> std::boolalpha >> ret;
             return ret;
         }else
             return defaultValue;

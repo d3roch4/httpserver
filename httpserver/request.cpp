@@ -4,21 +4,17 @@
 
 namespace httpserver {
 
-std::string urlDecode(std::string &eString) {
-    std::string ret;
-    char ch;
-    int i, j;
-    for (i=0; i<eString.length(); i++) {
-        if (int(eString[i])==37) {
-            sscanf(eString.substr(i+1,2).c_str(), "%x", &j);
-            ch=static_cast<char>(j);
-            ret+=ch;
-            i=i+2;
-        } else {
-            ret+=eString[i];
+void urlDecoder(std::string & data) {
+    size_t pos;
+    while ((pos = data.find("+")) != std::string::npos) {
+        data.replace(pos, 1, " ");
+    }
+    while ((pos = data.find("%")) != std::string::npos) {
+        if (pos <= data.length() - 3) {
+            char replace[2] = {(char)(std::stoi("0x" + data.substr(pos+1,2), NULL, 16)), '\0'};
+            data.replace(pos, 3, replace);
         }
     }
-    return (ret);
 }
 
 void dynamic_request::parse_query()
@@ -33,7 +29,8 @@ void dynamic_request::parse_query()
     {
         std::string key = (*i)[1].str();
         std::string value = (*i)[2].str();
-        query_[key] = urlDecode( value );
+        urlDecoder(value);
+        query_[key] = value;
     }
 }
 
