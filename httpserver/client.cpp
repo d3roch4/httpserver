@@ -86,7 +86,7 @@ httpserver::response httpserver::client::request(verb method, const std::string 
 
     http::request<http::string_body> req{method, target, 11};
     if(params.size() && method != http::verb::get){
-        req.set(http::field::content_length, params.size());
+        req.set(http::field::content_length, to_string(params.size()));
         req.set(http::field::content_type, content_type);
         req.body() = params;
     }
