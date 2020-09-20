@@ -14,6 +14,8 @@ response& operator << (response& resp, const std::string& str);
 
 typedef std::function<void(const std::string&)> type_function_resp_default;
 
+void send(const response& resp);
+
 void ok(const std::string& content);
 
 void ok(const std::string& content, const std::string& type, bool compress);

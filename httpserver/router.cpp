@@ -41,7 +41,7 @@ void router::dispatcher(request_parser_empty& req)
                     }
                 }catch(const std::exception& ex){
                     string erro = req.get().target().to_string()+": "+ex.what();
-                    LOG_ERROR << erro;
+                    //LOG_ERROR << boost::diagnostic_information(ex);
                     server_error(erro);
                     print_stacktrace(ex);
                     return;

@@ -13,7 +13,7 @@ using field = boost::beast::http::field;
 
 // Send function
 template <class R>
-void send(R&& response)
+void _send(R&& response)
 {
     session* ptr = map_http_session[std::this_thread::get_id()];
     session_ssl* ssl = dynamic_cast<session_ssl*>(ptr);
@@ -24,6 +24,10 @@ void send(R&& response)
         if(plain)
             plain->send(response);
     }
+}
+
+void send(const httpserver::response& resp){
+    _send((httpserver::response&)resp);
 }
 
 httpserver::response getCompressResponse(const string& str)
@@ -48,7 +52,7 @@ httpserver::response getCompressResponse(const string& str)
 void compress_and_send(const string &str)
 {
     httpserver::response resp = getCompressResponse(str);
-    send(resp);
+    _send(resp);
 }
 
 void ok(const std::string& content)
@@ -60,7 +64,7 @@ void ok(const string &content, const string &type, bool compress)
 {
     response res = getCompressResponse(content);
     res.set(boost::beast::http::field::content_type, type);
-    send(res);
+    _send(res);
 }
 
 type_function_resp_default created = [](const std::string& local)
@@ -68,7 +72,7 @@ type_function_resp_default created = [](const std::string& local)
     response resp;
     resp.result(status::created);
     resp.set("Local", local );
-    send(resp);
+    _send(resp);
 };
 
 type_function_resp_default accepted = [](const std::string& content)
@@ -76,7 +80,7 @@ type_function_resp_default accepted = [](const std::string& content)
     response resp;
     resp.result(status::accepted);
     resp.body() = content;
-    send(resp);
+    _send(resp);
 };
 
 type_function_resp_default forbidden = [](const std::string& why)
@@ -88,7 +92,7 @@ type_function_resp_default forbidden = [](const std::string& why)
     res.body() = why;
     res.keep_alive(false);
     res.prepare_payload();
-    send(res);
+    _send(res);
 };
 
 type_function_resp_default bad_request = [](const std::string& why)
@@ -100,7 +104,7 @@ type_function_resp_default bad_request = [](const std::string& why)
     res.body() = why;
     res.keep_alive(false);
     res.prepare_payload();
-    send(res);
+    _send(res);
 };
 
 type_function_resp_default not_found = [](const std::string& target)
@@ -112,7 +116,7 @@ type_function_resp_default not_found = [](const std::string& target)
     res.body() = "The resource '" + target + "' was not found.";
     res.keep_alive(false);
     res.prepare_payload();
-    send(res);
+    _send(res);
 };
 
 type_function_resp_default server_error = [](const std::string& what)
@@ -124,7 +128,7 @@ type_function_resp_default server_error = [](const std::string& what)
    res.body() = "An error occurred: '" + what + "'";
    res.prepare_payload();
    res.keep_alive(false);
-   send(res);
+   _send(res);
 };
 
 type_function_resp_default redirect_to = [](const std::string& url)
@@ -132,7 +136,7 @@ type_function_resp_default redirect_to = [](const std::string& url)
     response res;
     res.result(boost::beast::http::status::temporary_redirect);
     res.set(field::location, url);
-    send(res);
+    _send(res);
 };
 
 std::function<void(const std::vector<std::string>&)> invalid_parameters = [](const std::vector<std::string>& parameters)
@@ -203,7 +207,7 @@ void send_file(const std::string &filename)
     {
         boost::beast::http::response<boost::beast::http::empty_body> res{boost::beast::http::status::ok, req.version()};
         setHeader(res, filename, size, lastWrite);
-        return send(std::move(res));
+        return _send(std::move(res));
     }
     // Respond to GET request
     boost::beast::http::response<boost::beast::http::file_body> res{
@@ -211,7 +215,7 @@ void send_file(const std::string &filename)
         std::make_tuple(std::move(body)),
         std::make_tuple(boost::beast::http::status::ok, req.version())};
     setHeader(res, filename, size, lastWrite);
-    return send(std::move(res));
+    return _send(std::move(res));
 }
 
 boost::beast::string_view mime_type(boost::beast::string_view path)
