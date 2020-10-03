@@ -13,7 +13,7 @@ using field = boost::beast::http::field;
 
 // Send function
 template <class R>
-void _send(R&& response)
+inline void _send(R&& response)
 {
     session* ptr = map_http_session[std::this_thread::get_id()];
     session_ssl* ssl = dynamic_cast<session_ssl*>(ptr);

@@ -52,7 +52,7 @@ public:
              std::vector<std::pair<unsigned short, bool>> ports = { {3000, false}, {3001, true} }, // 3000 plain, 3001 ssl
              const string& public_dir = "public_dir",
              int thread_qtd=4,
-             const std::string& certificadoFileName="", const std::string& chaveFileName="");
+             const std::string& certificadoFileName="", const std::string& chaveFileName="", const string &crossOrigin="");
 };
 
 

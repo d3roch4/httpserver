@@ -100,6 +100,9 @@ protected:
                     : self_(self)
                     , msg_(std::move(msg))
                 {
+                    const string& cross_origin = self_.router_.get_cross_origin();
+                    if(cross_origin.size())
+                        msg_.set(boost::beast::http::field::access_control_allow_origin, cross_origin);
                 }
 
                 void

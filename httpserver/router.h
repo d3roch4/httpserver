@@ -15,6 +15,7 @@ using request_parser_empty = boost::beast::http::request_parser<boost::beast::ht
 using verb = boost::beast::http::verb;
 
 class router {
+    string cross_origin;
     string public_dir;
     unordered_map<int, vector<shared_ptr<wrap_handle_request_i>>> mRotas;
 public:
@@ -32,6 +33,8 @@ public:
     void dispatcher(request_parser_empty &req);
 
     void set_public_dir(const string& dir);
+    void set_cross_origin(const string& cross_origin);
+    string get_cross_origin();
 };
 
 } // namespace httpserver

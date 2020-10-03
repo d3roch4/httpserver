@@ -86,6 +86,16 @@ void router::set_public_dir(const string &dir)
     public_dir = std::move(dir);
 }
 
+void router::set_cross_origin(const string &cross_origin)
+{
+    this->cross_origin = cross_origin;
+}
+
+string router::get_cross_origin()
+{
+    return this->cross_origin;
+}
+
 
 void router::send_file(boost::beast::http::request<http::empty_body> &req)
 {

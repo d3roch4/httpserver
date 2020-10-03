@@ -5,9 +5,10 @@
 
 namespace httpserver {
 
-void HttpServer::run(const string &addr, std::vector<std::pair<unsigned short, bool>> ports, const string &doc_root, int thread_qtd, const std::string& certificadoFileName, const std::string& chaveFileName)
+void HttpServer::run(const string &addr, std::vector<std::pair<unsigned short, bool>> ports, const string &doc_root, int thread_qtd, const std::string& certificadoFileName, const std::string& chaveFileName, const string& crossOrigin)
 {
     router_.set_public_dir(doc_root);
+    router_.set_cross_origin(crossOrigin);
 
     auto const address = net::ip::make_address(addr);
     auto const threads = std::max<int>(1, thread_qtd);
