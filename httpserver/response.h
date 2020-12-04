@@ -16,11 +16,11 @@ typedef std::function<void(const std::string&)> type_function_resp_default;
 
 void send(const response& resp);
 
-void ok(const std::string& content);
+void ok(const std::string& content="");
 
 void ok(const std::string& content, const std::string& type, bool compress);
 
-extern type_function_resp_default created;
+void created(const std::string& local, const std::string& body="");
 
 extern type_function_resp_default accepted;
 
