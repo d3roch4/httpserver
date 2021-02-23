@@ -13,7 +13,6 @@ template<class F, int NumberParameters>
 class wrap_handle_request_basic : public wrap_handle_request_i
 {
     std::regex regex_;
-    std::smatch what_;
     F function_;
 public:
     wrap_handle_request_basic(const string &exp, F function) :
@@ -22,16 +21,16 @@ public:
     {
     }
 
-    bool macth(const std::string& path){
-        return std::regex_match(path, what_, regex_);
+    bool macth(const std::string& path, std::smatch& what){
+        return std::regex_match(path, what, regex_);
     }
 
-    void operator()()
+    void exec(std::smatch& what)
     {
         std::array<parameter_parser, NumberParameters> array;
 
         for(size_t i=0; i<array.size(); i++){
-            string&& str = what_[i+1].str();
+            string&& str = what[i+1].str();
             array[i].swap(str);
         }
 

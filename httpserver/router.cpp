@@ -29,15 +29,16 @@ void router::dispatcher(request_parser_empty& req)
 
             //LOG_DEBUG << to_string(req.get().method()) << ' ' << path;
 
+            std::smatch what;
             for(shared_ptr<wrap_handle_request_i> pr: rota.second){
                 try{
                     const std::string& str = path.to_string();
-                    if(pr->macth(str)){
+                    if(pr->macth(str, what)){
                         const auto& filters = pr->filters;
                         for(const auto& filter: filters)
                             if(filter())
                                 return;
-                        return (*pr)();
+                        return pr->exec(what);
                     }
                 }catch(const std::exception& ex){
                     string erro = req.get().target().to_string()+": "+ex.what();

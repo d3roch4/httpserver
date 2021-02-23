@@ -6,6 +6,7 @@
 
 namespace httpserver {
 
+std::mutex mtx;
 std::unordered_map<std::thread::id, session*> map_http_session = {};
 
 session& get_http_session()
@@ -46,7 +47,10 @@ void session::on_read(boost::beast::error_code ec, std::size_t bytes_transferred
     // Send the response
     //handle_request(*doc_root_, std::move(req_), lambda_);
 
+    mtx.lock();
     map_http_session[std::this_thread::get_id()] = this;
+    mtx.unlock();
+
     router_.dispatcher( parser_.get() );
 }
 

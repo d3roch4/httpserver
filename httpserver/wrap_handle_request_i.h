@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include <regex>
 
 namespace httpserver {
 
@@ -14,8 +15,8 @@ typedef std::function<bool()> function_filter;
 struct wrap_handle_request_i
 {
     std::vector<function_filter> filters;
-    virtual bool macth(const std::string& path) = 0;
-    virtual void operator()() = 0;
+    virtual bool macth(const std::string& path, std::smatch& what) = 0;
+    virtual void exec(std::smatch& what) = 0;
 };
 
 /**

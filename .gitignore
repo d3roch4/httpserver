@@ -1,7 +1,7 @@
 build/
 old_code/
 .vscode/
-
+.idea/
 CMakeLists.txt.user
 
 .DS_Store
