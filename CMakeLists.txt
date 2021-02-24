@@ -17,7 +17,7 @@ include_directories(./ ${OPENSSL_INCLUDE_DIRS})
 
 file(GLOB CPP_FILES httpserver/*/*.cpp httpserver/*.cpp)
 file(GLOB HPP_FILES httpserver/*/*.h httpserver/*.h)
-add_library(${PROJECT_NAME} ${CPP_FILES} ${HPP_FILES})
+add_library(${PROJECT_NAME} STATIC ${CPP_FILES} ${HPP_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ./)
 target_link_libraries(${PROJECT_NAME}
         ${Boost_LIBRARIES}
