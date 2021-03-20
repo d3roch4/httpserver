@@ -87,16 +87,15 @@ void router::set_public_dir(const string &dir)
     public_dir = std::move(dir);
 }
 
-void router::set_cross_origin(const string &cross_origin)
+void router::set_cors_origin(const cors_origin_config &cors_origin)
 {
-    this->cross_origin = cross_origin;
+    this->cors_origin = cors_origin;
 }
 
-string router::get_cross_origin()
+cors_origin_config router::get_cors_origin()
 {
-    return this->cross_origin;
+    return this->cors_origin;
 }
-
 
 void router::send_file(boost::beast::http::request<http::empty_body> &req)
 {

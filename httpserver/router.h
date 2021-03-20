@@ -14,8 +14,15 @@ using namespace std;
 using request_parser_empty = boost::beast::http::request_parser<boost::beast::http::empty_body>;
 using verb = boost::beast::http::verb;
 
+struct cors_origin_config{
+    string origins;
+    string methods;
+    string headers;
+    string expose_headers;
+};
+
 class router {
-    string cross_origin;
+    cors_origin_config cors_origin;
     string public_dir;
     unordered_map<int, vector<shared_ptr<wrap_handle_request_i>>> mRotas;
 public:
@@ -33,8 +40,8 @@ public:
     void dispatcher(request_parser_empty &req);
 
     void set_public_dir(const string& dir);
-    void set_cross_origin(const string& cross_origin);
-    string get_cross_origin();
+    void set_cors_origin(const cors_origin_config& cross_origin);
+    cors_origin_config get_cors_origin();
 };
 
 } // namespace httpserver
