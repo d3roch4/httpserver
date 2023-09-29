@@ -100,9 +100,15 @@ protected:
                     : self_(self)
                     , msg_(std::move(msg))
                 {
-                    const string& cross_origin = self_.router_.get_cross_origin();
-                    if(cross_origin.size())
-                        msg_.set(boost::beast::http::field::access_control_allow_origin, cross_origin);
+                    const cors_origin_config& cors_cfg = self_.router_.get_cors_origin();
+                    if(cors_cfg.origins.size())
+                        msg_.set(boost::beast::http::field::access_control_allow_origin, cors_cfg.origins);
+                    if(cors_cfg.expose_headers.size())
+                        msg_.set(boost::beast::http::field::access_control_expose_headers, cors_cfg.expose_headers);
+                    if(cors_cfg.headers.size())
+                        msg_.set(boost::beast::http::field::access_control_allow_headers, cors_cfg.headers);
+                    if(cors_cfg.methods.size())
+                        msg_.set(boost::beast::http::field::access_control_allow_methods, cors_cfg.methods);
                 }
 
                 void

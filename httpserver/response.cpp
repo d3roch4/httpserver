@@ -67,13 +67,14 @@ void ok(const string &content, const string &type, bool compress)
     _send(res);
 }
 
-type_function_resp_default created = [](const std::string& local)
+void created(const std::string& local, const string& body)
 {
     response resp;
     resp.result(status::created);
-    resp.set("Local", local );
+    resp.set("Local", local);
+    resp.body() = body;
     _send(resp);
-};
+}
 
 type_function_resp_default accepted = [](const std::string& content)
 {

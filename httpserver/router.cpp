@@ -29,15 +29,16 @@ void router::dispatcher(request_parser_empty& req)
 
             //LOG_DEBUG << to_string(req.get().method()) << ' ' << path;
 
+            std::smatch what;
             for(shared_ptr<wrap_handle_request_i> pr: rota.second){
                 try{
                     const std::string& str = path.to_string();
-                    if(pr->macth(str)){
+                    if(pr->macth(str, what)){
                         const auto& filters = pr->filters;
                         for(const auto& filter: filters)
                             if(filter())
                                 return;
-                        return (*pr)();
+                        return pr->exec(what);
                     }
                 }catch(const std::exception& ex){
                     string erro = req.get().target().to_string()+": "+ex.what();
@@ -86,16 +87,15 @@ void router::set_public_dir(const string &dir)
     public_dir = std::move(dir);
 }
 
-void router::set_cross_origin(const string &cross_origin)
+void router::set_cors_origin(const cors_origin_config &cors_origin)
 {
-    this->cross_origin = cross_origin;
+    this->cors_origin = cors_origin;
 }
 
-string router::get_cross_origin()
+cors_origin_config router::get_cors_origin()
 {
-    return this->cross_origin;
+    return this->cors_origin;
 }
-
 
 void router::send_file(boost::beast::http::request<http::empty_body> &req)
 {

@@ -26,14 +26,15 @@ public:
      void pega(int numero){
          response resp;
          resp.body() = "Peguei: "+to_string(numero)+", body: "+request().body();
-         //send( resp );
+         send( resp );
      }
 
     CarroControlador(HttpServer& bs){
+         bs.route(verb::get, "/ola", [](){ok("Olá!!");});
          bs.route(verb::get, "/carros/(.+)/(.+)", std::bind(&CarroControlador::getCarros, this, _1, _2), "marca", "modelo");
-         bs.route(verb::get, "/usuario/(.+)/extrato", std::bind(&CarroControlador::pega, this, _1), "");
-         bs.route(verb::get, "/um/([0-9]+)/dois/(.*)/tres/(.*)/fim", std::bind(&CarroControlador::um2tres, this, _1, _2, _3), "marca", "modelo", "");
-         bs.route(verb::get, "/pega/([0-9]+)", std::bind(&CarroControlador::pega, this, _1), _1);
+         bs.route(verb::get, "/usuarios/(.+)/extrato", std::bind(&CarroControlador::pega, this, _1), "");
+         bs.route(verb::post, "/um/([0-9]+)/dois/(.*)/tres/(.*)/fim", std::bind(&CarroControlador::um2tres, this, _1, _2, _3), "marca", "modelo", "");
+         bs.route(verb::get, "/get/(\\d+)", std::bind(&CarroControlador::pega, this, _1), _1);
     }
 };
 
@@ -44,19 +45,15 @@ void call(const F& fun){
 
 int main()
 {
+    ::signal(SIGSEGV, &backtrace_signal_handler);
+    ::signal(SIGABRT, &backtrace_signal_handler);
+    print_stacktrace_previous_run_crash();
+
     httpserver::HttpServer server;
     CarroControlador carro{server};
 
     cout << "Acesse: http://localhost:3000" << endl;
     cout << "Acesse: https://localhost:3001" << endl;
-    thread t([&]{
-        server.run();
-    });
-    
-    client http{"https://localhost"};
-    clog << "/pega" << endl;
-    clog << http.request(verb::post, "/pega", "Testando. Um, dois, três", "");
 
-    clog << "join" << endl;
-    t.join();
+    server.run("0.0.0.0",{ {3000, false}, {3001, true} }, "public_dir", 5);
 }
