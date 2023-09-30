@@ -7,8 +7,7 @@ option(BUILD_EXAMPLE "Build example code" OFF)
 
 include(deps.cmake)
 
-add_compile_definitions(BOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED=1)
-set(Boost_USE_STATIC_LIBS   ON)
+#add_compile_definitions(BOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED=1)
 find_package(Boost COMPONENTS system thread regex stacktrace_addr2line)
 find_package(OpenSSL REQUIRED) 
 find_package(ZLIB REQUIRED)
