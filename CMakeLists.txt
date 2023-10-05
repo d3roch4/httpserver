@@ -20,8 +20,8 @@ add_library(${PROJECT_NAME} STATIC ${CPP_FILES} ${HPP_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ./)
 target_link_libraries(${PROJECT_NAME}
         ${Boost_LIBRARIES}
-        ${OPENSSL_SSL_LIBRARY}
-        ${OPENSSL_CRYPTO_LIBRARY}
+        OpenSSL::SSL
+        OpenSSL::Crypto
         d3util
         pthread
         ZLIB::ZLIB
